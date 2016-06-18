@@ -1,2 +1,2 @@
 # skeleton
-Chrome extension: show html structure of page
+Chrome extension: show html structure of page!

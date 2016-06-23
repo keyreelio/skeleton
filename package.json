@@ -1,0 +1,29 @@
+{
+  "name": "skeleton",
+  "version": "0.0.1",
+  "description": "Chrome extension: show structure of an HTML page",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Auxoft/skeleton.git"
+  },
+  "keywords": [
+    "HTML",
+    "Extention",
+    "Chrome",
+    "developing"
+  ],
+  "author": "Auxoft team",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Auxoft/skeleton/issues"
+  },
+  "homepage": "https://github.com/Auxoft/skeleton#readme"
+}

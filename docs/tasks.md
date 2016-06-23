@@ -2,17 +2,17 @@
 # TASKS
 
 1. node.js
-	- installation
-	- init project
-2. directory structure (bin, build, etc...)
-3. git init + gitHub
+	- + installation
+	- + init project
+2. + directory structure (bin, build, etc...)
+3. + git init + gitHub
 4. coffeeScript ? typeScript
-  1. install compiler
+  1. +install compiler
 5. coffeelint, jshint, ?typelint?
-  1. install
+  1. +install typelinter
 6. init extension project
-  1. directory structure
-	2. manifest
+  1. +directory structure
+	2. +manifest
 	3. background script
 	4. content script
 7. test framework (mocha/chai) + covering(istanbul)

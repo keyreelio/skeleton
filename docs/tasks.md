@@ -15,7 +15,7 @@
 	2. manifest
 	3. background script
 	4. content script
-7. test framework (mocha/chai)
+7. test framework (mocha/chai) + covering(istanbul)
 8. grunt ? gulp
   1. installation
   2. create base build script

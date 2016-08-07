@@ -9,3 +9,6 @@ Chrome extension: show html structure of the page!!!
 3. Всі файли будуть переведені з розширення .coffee в розширення .js та поміщені в папку за шляхом: "./build/js".
 4. В папці js утворяться в1дпов1дно 2 папки з назвами: "minify" і "maps", для зручного перегляду файлів відповідного типу.
 ```
+
+[TODO](https://github.com/Auxoft/skeleton/blob/master/docs/tasks.md)
+

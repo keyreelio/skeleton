@@ -1,0 +1,1 @@
+(function(){var l,o;l=function(l){return 5===l?"Hello world!":4===l?"Hello world":"Privet!"},o=function(l){return"Le0n1daS"===l?"Hello "+l:"Fuck Off!"},module.exports={Hello:l,Looking:o}}).call(this);

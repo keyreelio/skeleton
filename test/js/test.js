@@ -7,9 +7,9 @@ describe("Hello", function() {
 		assert.equal(file.Hello(5),'Hello world!');
 	}),
 
-	/*it("Output Hello world without !", function() {
+	it("Output Hello world without !", function() {
 		assert.equal(file.Hello(4),'Hello world');
-	}),*/
+	}),
 
 	it("Output Privet", function() {
 		assert.equal(file.Hello(3),'Privet!');

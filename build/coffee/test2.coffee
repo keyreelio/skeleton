@@ -1,20 +1,17 @@
-
-Hello = (k) -> 
-	if k==5 
-		return "Hello world!"
-	if k==4 
-		return "Hello world"
+Hello = (k) ->
+	if k==5
+		"Hello world!"
+	else if k==4
+		"Hello world"
 	else
-		return "Privet!"
-
+		"Privet!"
 
 Looking = (string) ->
-	if string=="Le0n1daS"
-		return "Hello #{string}"
+	if string == "Le0n1daS"
+		"Hello #{string}"
 	else
-		return "Fuck Off!"
+		"Fuck Off!"
 
-module.exports = {
-				Hello: Hello,
-				Looking: Looking
-				}	
+module.exports = 
+	Hello: Hello
+	Looking: Looking

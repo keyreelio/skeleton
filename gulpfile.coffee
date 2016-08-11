@@ -12,6 +12,7 @@ source = require 'vinyl-source-stream'
 buffer = require 'vinyl-buffer'
 watchify = require 'watchify'
 browserify = require 'browserify'
+config = require './src/config/config.coffee'
 
 
 gulp.task 'test',['pre-test'], ->
@@ -26,48 +27,43 @@ gulp.task 'pre-test', ->
     .pipe istanbul.hookRequire()
 
 
-customOpts = 
-  entries: ['./build/coffee/main1.coffee']
-  debug: true
-
-
-opts = assign {},watchify.args,customOpts
-b = watchify browserify(opts)
-b.transform coffeelint,{doEmitErrors: true,doEmitWarnings: false}
-b.transform coffeeify,{bare: false, header: true}
-
 
 rebuild = ->
-  bundle()
+  config.bundleConfigs.forEach(bundle)
   gulp.run 'default' 
 
-
-bundle = ->
+b = null
+bundle = (bundleConfig)->
+  opts =
+    entries: bundleConfig.entries 
+    cache: {}
+    packageCache: {}
+    fullPaths: false
+    debug: true
+  b = watchify browserify(opts)
+  b.transform coffeelint,{doEmitErrors: true,doEmitWarnings: false}
+  b.transform coffeeify,{bare: false, header: true}
   return b.bundle()
     .on 'error', (err) -> 
         console.log err.message
-    .pipe source 'bundle.js'
+    .pipe source(bundleConfig.outputName)
     .pipe buffer()
     .pipe sourcemaps.init {loadMaps: true}
     .pipe sourcemaps.write './'
-    .pipe gulp.dest './public/'
+    .pipe minify {
+        ext:{
+            src:'.js',
+            min:'.min.js'
+        }
+    }
+    .pipe gulp.dest './build/extension/'
 
 
-gulp.task 'build-coffee', bundle
+gulp.task 'build-coffee', config.bundleConfigs.forEach(bundle)
+
 b.on 'update', rebuild
 b.on 'log', gutil.log
 
 
 gulp.task 'default', ->
-  gulp.run ['build-coffee', 'test', 'compress']
-
-
-gulp.task 'compress',['build-coffee'],->
-  gulp.src './build/*.js'
-    .pipe minify {
-        ext:{
-            src:'-debug.js',
-            min:'.js'
-        }
-    }
-    .pipe gulp.dest './build/minify/'
+  gulp.run ['build-coffee', 'test']

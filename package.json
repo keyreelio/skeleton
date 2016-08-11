@@ -44,5 +44,8 @@
   "bugs": {
     "url": "https://github.com/Auxoft/skeleton/issues"
   },
-  "homepage": "https://github.com/Auxoft/skeleton#readme"
+  "homepage": "https://github.com/Auxoft/skeleton#readme",
+  "dependencies": {
+    "chai": "^3.5.0"
+  }
 }

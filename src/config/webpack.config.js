@@ -1,19 +1,19 @@
 webpack= require('webpack');
-module.exports = 
+module.exports =
 [
     {
         entry:"./src/front/content.coffee",
         devtool: "source-map",
         module: {
             loaders: [
-                { 
-                    test: /\.(coffee\.md|litcoffee)$/, 
-                    loader: "coffee-loader?literate" 
+                {
+                    test: /\.(coffee\.md|litcoffee)$/,
+                    loader: "coffee-loader?literate"
                 },
-                
-                { 
-                    test: /\.coffee$/, 
-                    loader: "coffee-loader" 
+
+                {
+                    test: /\.coffee$/,
+                    loader: "coffee-loader"
                 },
 
                 {
@@ -42,14 +42,14 @@ module.exports =
         devtool: "source-map",
         module: {
             loaders: [
-                { 
-                    test: /\.(coffee\.md|litcoffee)$/, 
-                    loader: "coffee-loader?literate" 
+                {
+                    test: /\.(coffee\.md|litcoffee)$/,
+                    loader: "coffee-loader?literate"
                 },
-                
-                { 
-                    test: /\.coffee$/, 
-                    loader: "coffee-loader" 
+
+                {
+                    test: /\.coffee$/,
+                    loader: "coffee-loader"
                 },
 
                 {
@@ -71,6 +71,6 @@ module.exports =
         {
             filename: "background.min.js"
         }
-        
+
     }
 ]

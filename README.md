@@ -11,7 +11,7 @@ Chrome extension: Show structure of the HTML page
 7.  Run 'gulp' to build the project and run the tests
 8.  Open 'Extension' page in Chrome browser (type 'chrome://extensions/' in your browser's address bar)
 9.  Set 'Developer mode' on
-10. Press 'Load unpacked extension' and choose the directory `./build/extenson` from directory where you have cloned the project
+10. Press 'Load unpacked extension' and choose the directory `./build/extension` from directory where you have cloned the project
 
 ## What's next?
 

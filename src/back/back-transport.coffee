@@ -10,11 +10,11 @@ class BackTransport
       port.onMessage.addListener (message) =>
         @callbackObject.receive port, message.name, message.message
 
-    send: (port, name, message) ->
-      port.postMessage {
-        name: name
-        message: message
-      }
+  send: (port, name, message) ->
+    port.postMessage ({
+      name: name
+      message: message
+    })
 
       
 module.exports = BackTransport

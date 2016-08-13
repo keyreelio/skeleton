@@ -3,12 +3,12 @@ do ({expect, assert} = chai = require "chai").should
 
 class FrontSkeleton
   constructor: () ->
-    @trasport = new FrontTransport @
+    @transport = new FrontTransport @
   
   receive: (name,message) ->
-    console.log('name:',name,'\nmessage:',message)
+    console.log('! name:',name,'! \nmessage:',message)
   init: () ->
-    @transport.send 'blablabla',"lalala"
+    @transport.send "HtmlText",document.documentElement.innerHTML
 
 skeleton = new FrontSkeleton
 skeleton.init()

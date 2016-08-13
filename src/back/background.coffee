@@ -6,8 +6,8 @@ class BackSkeleton
     @transport = new BackTransport @
  
   receive: (port,name,message) ->
-    console.log 'name:',name,'\nmessage:',message
-    @send port,'backName','backMessage'
+    console.log "!name: #{name}  \n!message: #{message}"
+    @send port,"msg","Done!"
 
   send: (port,name,message) ->
     @transport.send port,name,message

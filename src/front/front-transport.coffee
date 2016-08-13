@@ -16,9 +16,6 @@ class FrontTransport
   #  name: [string]             - message name
   #  message: [any json-object] - message content
   send: (name, message) ->
-    console.log("! name=", name)
-    console.log("! message=", message)
-
     try
       @_port.postMessage {
         name:    name

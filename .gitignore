@@ -1,5 +1,10 @@
+# compiled modules
+*.min.js
+*.min.js.map
+
 # Logs
 logs
+
 *.log
 npm-debug.log*
 

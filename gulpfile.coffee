@@ -13,14 +13,14 @@ gulp.task 'test',['pre-test'], ->
 
 gulp.task 'pre-test', ->
   return gulp.src ['./build/coffee/test2.coffee']
-    .pipe istanbul {includeUntested: true} 
+    .pipe istanbul {includeUntested: true}
     .pipe istanbul.hookRequire()
 
 
 
 rebuild = ->
   config.forEach(bundle)
-  gulp.run 'default' 
+  gulp.run 'default'
 
 bundle = (config) ->
   console.log config.entry
@@ -29,7 +29,7 @@ bundle = (config) ->
     .pipe gulp.dest './build/extension/'
 
 
-gulp.watch './src/**/*.*',['default']
+gulp.watch './src/**/*.*', ['default']
 
 gulp.task 'build-coffee', config.forEach(bundle)
 

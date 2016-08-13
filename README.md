@@ -1,15 +1,19 @@
 # skeleton
-Chrome extension: show html structure of the page!!!
+Chrome extension: Show structure of the HTML page
 
-```
-Щоб запустити проект потрібно:
-====================================
-1. Запустити в консолі команду "npm install"
-2. Скопіювати свої файли з розширенням coffee в папку за шляхом: "./src/coffee/" чи інші папки відповідно.
-3. Після того перейти в папку з Extension/skeleton/ й в консолі запустити команду: "gulp".
-4. Всі файли будуть переведені з розширення .coffee в розширення .js та поміщені в папку за шляхом: "./build/coffee" чи інші папки відповідно.
-5. В певній папці утворяться в1дпов1дно 2 файли з назвами: "name.min.js", "name.min.map.js"
-```
+## To build the project you have to:
 
-[TODO](https://github.com/Auxoft/skeleton/blob/master/docs/tasks.md)
+1.  Install nodejs (TODO: add link to the process)
+2.  Clone this project from github.com (TODO: add link and steps)
+4.  Install 'gulp' globally: 'npm install gulp -g'
+5.  Install 'mocha' globally: 'npm install mocha -g'
+6.  Run 'npm install' for installing all the requied npm modules
+7.  Run 'gulp' to build the project and run the tests
+8.  Open 'Extension' page in Chrome browser (type 'chrome://extensions/' in your browser's address bar)
+9.  Set 'Developer mode' on
+10. Press 'Load unpacked extension' and choose the directory `./build/extenson` from directory where you have cloned the project
+
+## What next?
+
+- [TODO](https://github.com/Auxoft/skeleton/blob/master/docs/tasks.md)
 

@@ -11,9 +11,9 @@
   2. [-] jshint
 6. [+] init extension project
   1. [+] directory structure
-	2. [+] manifest
-	3. [+] background script
-	4. [+] content script
+  2. [+] manifest
+  3. [+] background script
+  4. [+] content script
 7. test framework
   1. [+] mocha/chai
   2. [+] js covering(istanbul)
@@ -21,12 +21,12 @@
 8. [+] gulp
   1. [+] installation
   2. [+] create base build script
-  	[+] compile from coffeeScript into JS
-  	[+] lint*
-  	[+] CS testing
-  	[+] copy resources and scripts into build/extension directory ? (if necessary)
-  	[-] build chrome extension *.crx file
-  	[-] deploy on Chrome Store
+  3. [+] compile from coffeeScript into JS
+  4. [+] lint*
+  5. [+] CS testing
+  6. [+] copy resources and scripts into build/extension directory ? (if necessary)
+  7. [-] build chrome extension *.crx file
+  8. [-] deploy on Chrome Store
 9. [+] webpack
   1. [+] run coffeling
   2. [+] compile from coffeeScript into JS

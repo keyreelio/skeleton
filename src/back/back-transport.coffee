@@ -16,5 +16,5 @@ class BackTransport
       message: message
     })
 
-      
+
 module.exports = BackTransport

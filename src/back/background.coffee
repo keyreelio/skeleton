@@ -4,7 +4,7 @@ do ({expect, assert} = chai = require "chai").should
 class BackSkeleton
   constructor: ->
     @transport = new BackTransport @
- 
+
   receive: (port,name,message) ->
     console.log "!name: #{name}  \n!message: #{message}"
     @send port,"msg","Done!"

@@ -28,11 +28,11 @@ bundle = (config) ->
     .pipe webpack config
     .pipe gulp.dest './build/extension/'
 
+gulp.task 'watch', ->
+ gulp.watch './src/**/*.*',['default']
 
-gulp.watch './src/**/*.*',['default']
-
-gulp.task 'build-coffee', config.forEach(bundle)
-
+gulp.task 'build-coffee', -> 
+  config.forEach(bundle)
 
 gulp.task 'default', ->
   gulp.run ['build-coffee', 'test']

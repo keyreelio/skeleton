@@ -2,6 +2,7 @@ webpack= require('webpack');
 module.exports = 
 [
     {
+
         entry:"./src/front/content.coffee",
         devtool: "source-map",
         module: {
@@ -26,9 +27,8 @@ module.exports =
         plugins: [
         new webpack.optimize.UglifyJsPlugin({
             minimize: true,
-            compress: {
-                warnings: false
-            }
+            compress: true,
+            mangle: true
         })
         ],
         output:
@@ -63,7 +63,8 @@ module.exports =
         new webpack.optimize.UglifyJsPlugin({
             minimize: true,
             compress: {
-                warnings: false
+                dead_code: true,
+                warnings: true
             }
         })
         ],

@@ -1,5 +1,5 @@
 var assert=require('assert'),
-file = require('./../build/js/test2.js');
+file = require('./../../build/js/test2.js');
 
 describe("Hello", function() {
 	

@@ -1,0 +1,167 @@
+[33mcommit 0bea5f8a49b8a6feff3dec1fb77a003b15faa6cb[m
+Author: Le0n1daS1996 <le0n1das@ukr.net>
+Date:   Sat Aug 13 14:31:24 2016 +0300
+
+    Fix gulpfile.coffee, change browserify on webpack
+
+[33mcommit 9ebbaa98afc29d05b9b0e5b98d4c47756c09aac3[m
+Author: Le0n1daS1996 <le0n1das@ukr.net>
+Date:   Thu Aug 11 15:04:19 2016 +0300
+
+    Fix bundle function for many files+ fix readme
+
+[33mcommit e5a330714cae39a76d1fbe3d352016cdba2c9ddb[m
+Author: dbdeveloper <dbdevelop@gmail.com>
+Date:   Tue Aug 9 14:57:43 2016 +0300
+
+    add traceur npm module
+
+[33mcommit dd39130ee8b02f9bcdd691fd312882318e0deac5[m
+Author: Le0n1daS1996 <le0n1das@ukr.net>
+Date:   Tue Aug 9 12:33:46 2016 +0300
+
+    Covering+Mocha on Coffee & add gulpfile.coffee
+
+[33mcommit 9f6d3bf9105391550ec654ed0e0f601664098bfe[m
+Author: dbdeveloper <dbdevelop@gmail.com>
+Date:   Sun Aug 7 20:57:45 2016 +0300
+
+    README.md and tasks.md changed
+
+[33mcommit 28f259aaea256dbe71dd1cbe3012e530aaced892[m
+Merge: 9b53e79 972b9bf
+Author: Le0n1daS1996 <le0n1das@ukr.net>
+Date:   Sun Aug 7 20:38:48 2016 +0300
+
+    Fix readme.md
+
+[33mcommit 972b9bf38e2c851062d0147b1f6d9edde52ebfab[m
+Author: Le0n1daS <le0n1das@ukr.net>
+Date:   Sun Aug 7 14:20:07 2016 +0300
+
+    Create gulpfile+ change readme.md
+
+[33mcommit d368c564c4c0a9e8ac12b8872355f2bf47aeeff8[m
+Author: Le0n1daS <le0n1das@ukr.net>
+Date:   Sun Aug 7 14:19:01 2016 +0300
+
+    Create gulpfile+ change readme.md
+
+[33mcommit f76b69c81e601bd13973f7f7931887b9b1ee0ed3[m
+Author: Le0n1daS <le0n1das@ukr.net>
+Date:   Sun Aug 7 14:17:55 2016 +0300
+
+    Create gulpfile+ change readme.md
+
+[33mcommit 9b53e799542a9d031b26f2dc8b8a97364227f1f3[m
+Author: Le0n1daS <le0n1das@ukr.net>
+Date:   Sun Aug 7 13:01:21 2016 +0300
+
+    GULPFILE.JS
+
+[33mcommit d05250aa1f5c2bd280837c26ab48b13d14d601ee[m
+Author: dbdeveloper <dbdevelop@gmail.com>
+Date:   Sun Jul 24 19:46:15 2016 +0300
+
+    add browserify builder script
+
+[33mcommit 723b8370872654068b3ab4f4ff4ef466caff19d9[m
+Author: Le0n1daS <le0n1das@ukr.net>
+Date:   Thu Jun 23 21:37:04 2016 +0300
+
+    Add first chrome extension (Hello world!)
+
+[33mcommit 3ed05c929c7e434cca50b215163c396add89d60a[m
+Author: Le0n1daS <le0n1das@ukr.net>
+Date:   Thu Jun 23 18:23:47 2016 +0300
+
+    Add covering to tasks list
+
+[33mcommit 62db56cc1d31f085d4a9aa4f2d222d1e6034a11f[m
+Author: dbdeveloper <dbdevelop@gmail.com>
+Date:   Thu Jun 23 17:00:36 2016 +0300
+
+    add base directory structure
+
+[33mcommit 368f6392d4922447826d8d223f760e0b58bf4cf1[m
+Author: dbdeveloper <dbdevelop@gmail.com>
+Date:   Thu Jun 23 16:53:24 2016 +0300
+
+    add document with tasks
+
+[33mcommit e281cce50d178755787c9da8bef0e5e811a4dbb4[m
+Merge: 0428375 0b045c8
+Author: dbdeveloper <dbdevelop@gmail.com>
+Date:   Thu Jun 23 16:51:13 2016 +0300
+
+    Merge branch 'master' of https://github.com/Auxoft/skeleton
+
+[33mcommit 0b045c8a234c6222d3ee3ab4de31693891a54342[m
+Merge: d716fe8 4ee7ce1
+Author: Le0n1daS <le0n1das@ukr.net>
+Date:   Sun Jun 19 16:19:39 2016 +0300
+
+    Merge branch 'check-stas'
+
+[33mcommit 4ee7ce153850f96ffbf12b3ab8731f7f973d67cb[m
+Author: Le0n1daS <le0n1das@ukr.net>
+Date:   Sun Jun 19 16:18:36 2016 +0300
+
+    Learning of git --no-ff
+
+[33mcommit d716fe84ad9c0e9b08d99ce6a696b50e51c28621[m
+Merge: 40f334c e945c2a
+Author: Le0n1daS <le0n1das@ukr.net>
+Date:   Sun Jun 19 16:16:37 2016 +0300
+
+    Merge branch 'refs/heads/check-stas'
+
+[33mcommit e945c2aa1fd1728fadb1b72828cffda418ba2c01[m
+Merge: 0e644d2 40f334c
+Author: Le0n1daS <le0n1das@ukr.net>
+Date:   Sun Jun 19 16:13:27 2016 +0300
+
+    Merge branch 'master' into check-stas
+
+[33mcommit 40f334c0c4ac56de87542766c710aa607d7b327b[m
+Author: Le0n1daS <le0n1das@ukr.net>
+Date:   Sun Jun 19 16:13:14 2016 +0300
+
+    Learning of git --no-ff
+
+[33mcommit ec1d174c6492886e59b6e30ec1364f4d234fbfdf[m
+Author: Le0n1daS <le0n1das@ukr.net>
+Date:   Sun Jun 19 16:08:20 2016 +0300
+
+    Learning of git --no-ff
+
+[33mcommit 0428375a0ef527c14329feabe71cdd96ddeef162[m
+Author: dbdeveloper <dbdevelop@gmail.com>
+Date:   Sat Jun 18 20:24:14 2016 +0300
+
+    add config
+
+[33mcommit 0e644d2dd122fa76e11d9d6f882af6166de2e737[m
+Merge: efd1873 699d781
+Author: Le0n1daS <le0n1das@ukr.net>
+Date:   Sat Jun 18 19:36:50 2016 +0300
+
+    Merge branch 'master' of https://github.com/Auxoft/skeleton
+
+[33mcommit 699d781535057d33e8e472473ce30b681be20ade[m
+Author: dbdeveloper <dbdevelop@gmail.com>
+Date:   Sat Jun 18 18:50:06 2016 +0300
+
+    add temporary files filter to .gitignore
+
+[33mcommit efd18737ee019a173a69ea1d4563e0ab5d885832[m
+Author: Le0n1daS <le0n1das@ukr.net>
+Date:   Sat Jun 18 17:36:57 2016 +0300
+
+    Check git commit
+
+[33mcommit 60ded50441b640c6e6067e4148a4c42a7f65b636[m
+Author: Petro Ladkin <petro.ladkin@gmail.com>
+Date:   Tue May 17 15:10:06 2016 +0300
+
+    Initial commit

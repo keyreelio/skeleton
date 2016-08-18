@@ -10,7 +10,6 @@ gulp.task 'test',['pre-test'], ->
     .pipe mocha ({compilers: 'coffee:coffee-script'})
     .pipe istanbul.writeReports()
 
-
 gulp.task 'pre-test', ->
   return gulp.src ['./build/coffee/test2.coffee']
     .pipe istanbul {includeUntested: true}

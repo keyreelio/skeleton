@@ -9,7 +9,12 @@ logs
 npm-debug.log*
 
 # temporary files
+tmp
 *~
+*.tmp
+*.old
+*.my
+*.orig
 
 # Runtime data
 pids

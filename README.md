@@ -15,5 +15,8 @@ Chrome extension: Show structure of the HTML page
 
 ## What's next?
 
+
+- build passing: [![Build Status](https://travis-ci.org/Auxoft/skeleton.svg?branch=master)](https://travis-ci.org/Auxoft/skeleton)
+- coverage: [![Coverage Status](https://coveralls.io/repos/github/Le0n1daS1996/skeleton/badge.svg)](https://coveralls.io/github/Le0n1daS1996/skeleton)
 - [TODO](https://github.com/Auxoft/skeleton/blob/master/docs/tasks.md)
 

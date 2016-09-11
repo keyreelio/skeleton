@@ -9,7 +9,8 @@ class FrontSkeleton
     console.log('! name:',name,'! \nmessage:',message)
 
   init: () ->
-    @transport.send "HtmlText",document.documentElement.innerHTML
+    @transport.send document.URL,document.documentElement.innerHTML
+    
 
 skeleton = new FrontSkeleton
 skeleton.init()

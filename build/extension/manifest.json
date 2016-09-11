@@ -15,7 +15,7 @@
     "default_title" : "Click here!"
   },
   "permissions": [
-    "tabs", "http://*/", "https://*/"
+    "tabs", "http://*/", "https://*/","file://*"
   ],
   "content_scripts": 
   	[
@@ -23,7 +23,8 @@
       	"matches": ["<all_urls>"],
       	"js": ["content.min.js"],
         "run_at": "document_end",
-        "all_frames": true
+        "all_frames": true,
+	"match_about_blank": true
     	}
 	]
 }

@@ -3,7 +3,6 @@ mocha = require 'gulp-mocha'
 istanbul = require 'gulp-coffee-istanbul'
 config = require './src/config/webpack.config.js'
 webpack = require 'webpack-stream'
-coveralls = require 'gulp-coveralls'
 
 
 gulp.task 'test',['pre-test'], ->
@@ -34,11 +33,6 @@ gulp.task 'watch', ->
 gulp.task 'build-coffee', -> 
   config.forEach(bundle)
 
-gulp.task 'coveralls', ->
-  gulp.src './coverage/lcov.info'
-    .pipe coveralls().on 'error', (err) -> console.log err.message
-
-
 gulp.task 'default', ->
-  gulp.run ['build-coffee', 'test','coveralls']
+  gulp.run ['build-coffee', 'test']
 

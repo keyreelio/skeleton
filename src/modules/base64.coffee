@@ -1,4 +1,4 @@
-ConvertToBase64 = (url,callback) ->
+ConvertToBase64 = (url,elem,callback) ->
   console.log "Url: #{url}"
   xhr = new XMLHttpRequest()
   xhr.open 'GET', url, true
@@ -8,7 +8,7 @@ ConvertToBase64 = (url,callback) ->
     if this.status == 200
       blob = this.response
       reader.onloadend = () ->
-        callback null,reader.result
+        callback null,elem,reader.result
       reader.readAsDataURL(blob)
 
   xhr.onerror = (e) ->

@@ -1,7 +1,7 @@
 do ({expect, assert} = chai = require "chai").should
 getHash = require '../modules/md5.coffee'
 Base64 = require '../modules/base64.coffee'
-convertURL = require '../modules/_getRelativeLink.js'
+convertURL = require '../modules/getRelativeLink.coffee'
 
 
 class TreeElementNotFound extends Error
@@ -42,8 +42,10 @@ class BackTransport
         #console.log "SRCDOC: #{obj.document.innerHTML},hashCode: #{hashCode}"
         @dictionary[hashCode] = obj
       else
+        hashCode = convertURL obj.url,@MainURL
+        console.log "HASHCODE!@#: #{hashCode}"
         #console.log "HASH SRC: #{hashCode}"
-        @dictionary[obj.url] = obj
+        @dictionary[hashCode] = obj
         #console.log @dictionary[hashCode].document.innerHTML
     if @dictionary['root_Page']?
       try
@@ -77,12 +79,10 @@ class BackTransport
           throw new TreeElementNotFound 'message'
       else if frame.hasAttribute 'src'
         #console.log "In hash url: #{frame.getAttribute 'src'}"
-        hashCode = convertURL(frame.getAttribute('src'), obj.url)
-        if @dictionary[hashCode]?
-          console.log "ZDAROVA PIDR"
+        if @dictionary[frame.getAttribute 'src']?
+          hashCode = frame.getAttribute 'src'
           flag = 0
           for _obj in obj.childrenArray
-            console.log _obj.document.innerHTML
             if _obj.document.innerHTML == @dictionary[hashCode].document.innerHTML
               flag++
               break
@@ -102,62 +102,39 @@ class BackTransport
 
   parce: (obj) ->
     counter = 0
-    for key, dom of @dictionary
-      console.log "KEY:",key
-      console.log "dom:", dom.document
-      documentTags = dom.document.querySelectorAll 'img,link,a'
-      console.log documentTags
-      for tag in documentTags
-        if tag.hasAttribute 'src'
-          console.log "Base64 src"
-          console.log tag
-          counter++
-          src = tag.getAttribute('src')
-          Base64  src,tag, (error, tag, result) =>
-            counter--
-            if error?
-              console.error "Base 64 error:",src,error.stack
-            else
-              console.log "AFTER",tag.id, tag.src,tag.getAttribute('src')
-              tag.setAttribute "src",result
-              console.log tag.getAttribute('src')
-              #console.log @dictionary['root_Page']
-              if counter == 0
-                console.log "COUNTER ==0,src"
-                @createNewObj @dictionary['root_Page']
+    for child in obj.childrenArray
+      @parce child
+    documentTags = obj.document.querySelectorAll 'img,link,a'
+    #console.log documentTags
+    for tag in documentTags
+      counter++
+      if tag.hasAttribute 'src'
+        Base64 tag.getAttribute('src'),(Error, result) =>
+          counter--
+          tag.setAttribute('src',result)
+          if counter == 0
+            console.log "SRC"
+            console.log obj.document
+            @createNewObj obj
             #console.log obj.document.innerHTML
-        if tag.getAttribute 'href'
-          console.log "Base64 href"
-          console.log tag
-          counter++
-          href = tag.getAttribute('href')
-          Base64  href,tag, (error, tag, result) =>
-            counter--
-            if error?
-              console.error "Base 64 error:",src,error.stack
-            else
-              console.log "AFTER",tag.id, tag.getAttribute('href')
-              tag.setAttribute "href",result
-              console.log tag.getAttribute('href')
-              #console.log @dictionary['root_Page']
-              if counter == 0
-               console.log "COUNTER ==0,src"
-               @createNewObj @dictionary['root_Page']
+      if tag.getAttribute 'href'
+        Base64 tag.getAttribute('href'),(Error,result) =>
+          counter--
+          tag.setAttribute('href',result)
+          if counter == 0
+            console.log "HREF"
             #console.log obj.document.innerHTML
+            @createNewObj obj
+    @createNewObj obj
 
   createNewObj: (obj) ->
-    for _obj in obj.childrenArray
-      @createNewObj _obj
+    console.log "CREATE OBJ: #{obj.url}, #{obj.document.innerHTML}"
     frames = obj.document.getElementsByTagName 'iframe'
     for frame in frames
       if frame.hasAttribute 'src'
-        hashCode = convertURL(frame.getAttribute('src'), obj.url)
-        result = @dictionary[hashCode]
+        result = @dictionary[frame.getAttribute('src')]
         frame.srcdoc = result.document.innerHTML
-
-    console.log obj.document.innerHTML
-
-    
+        console.log "SRCDOC: #{frame.srcdoc}"
 
 
 

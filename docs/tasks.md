@@ -41,4 +41,4 @@
 2. create dummy function with correct signature
 3. create tests (limit tests (min/max, empty, etc), standard values, error test (tests with error data))
 4. develop function and run tests. When tests return 0 errors - task is (mostly) finished
-
+5. Use gonzales for CAS

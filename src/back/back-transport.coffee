@@ -2,6 +2,7 @@ do ({expect, assert} = chai = require "chai").should
 getHash = require '../modules/md5.coffee'
 Base64 = require '../modules/base64.coffee'
 convertURL = require '../modules/_getRelativeLink.js'
+FileSaver = require 'file-saver'
 
 
 class TreeElementNotFound extends Error
@@ -105,7 +106,7 @@ class BackTransport
     for key, dom of @dictionary
       console.log "KEY:",key
       console.log "dom:", dom.document
-      documentTags = dom.document.querySelectorAll 'img,link,a'
+      documentTags = dom.document.querySelectorAll 'img,link,a,svg'
       console.log documentTags
       for tag in documentTags
         if tag.hasAttribute 'src'
@@ -125,6 +126,8 @@ class BackTransport
               if counter == 0
                 console.log "COUNTER ==0,src"
                 @createNewObj @dictionary['root_Page']
+                file = new File(["<html>",@dictionary['root_Page'].document.innerHTML,"</html>"],"index.txt", {type: "text/plain;charset=utf-8"})
+                FileSaver.saveAs(file)
             #console.log obj.document.innerHTML
         if tag.getAttribute 'href'
           console.log "Base64 href"
@@ -141,8 +144,12 @@ class BackTransport
               console.log tag.getAttribute('href')
               #console.log @dictionary['root_Page']
               if counter == 0
-               console.log "COUNTER ==0,src"
-               @createNewObj @dictionary['root_Page']
+                console.log "COUNTER ==0,src"
+                @createNewObj @dictionary['root_Page']
+                console.log "SAVE"
+                file = new File([@dictionary['root_Page'].document.innerHTML],"index.txt", {type: "text/plain;charset=utf-8"})
+                FileSaver.saveAs(file)
+
             #console.log obj.document.innerHTML
 
   createNewObj: (obj) ->
@@ -154,8 +161,6 @@ class BackTransport
         hashCode = convertURL(frame.getAttribute('src'), obj.url)
         result = @dictionary[hashCode]
         frame.srcdoc = result.document.innerHTML
-
-    console.log obj.document.innerHTML
 
     
 

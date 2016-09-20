@@ -12,11 +12,17 @@ class BackTransport
     expect(@callbackObject).to.exist
     @MainURL = ""
     @dictionary={}
-
+    chrome.browserAction.onClicked.addListener () ->
+      console.log "Button pressed!"
+      chrome.tabs.query {active: true, currentWindow: true},(tabArray) ->
+        chrome.tabs.sendMessage(tabArray[0].id, {name: "Privet",h: "qwwerty"})
     chrome.runtime.onConnect.addListener (port) =>
+      #console.log port.name
       # portname == 'skeleton' ?
       port.onMessage.addListener (message) =>
         @callbackObject.receive port, message
+        #@callbackObject.onClicked message
+
 
   send: (port, name, message) ->
     port.postMessage ({

@@ -1,8 +1,10 @@
 do ({expect, assert} = chai = require "chai").should
 getHash = require '../modules/md5.coffee'
 Base64 = require '../modules/base64.coffee'
-convertURL = require '../modules/_getRelativeLink.js'
+convertURL = require '../modules/getRelativeLink.coffee'
 FileSaver = require 'file-saver'
+xhr = require '../modules/xhr.coffee'
+gonzales = require '../modules/gonzales.coffee'
 
 
 class TreeElementNotFound extends Error
@@ -15,7 +17,7 @@ class BackTransport
     chrome.browserAction.onClicked.addListener () ->
       console.log "Button pressed!"
       chrome.tabs.query {active: true, currentWindow: true},(tabArray) ->
-        chrome.tabs.sendMessage(tabArray[0].id, {name: "Privet",h: "qwwerty"})
+        chrome.tabs.executeScript tabArray[0].id, {file: "content.min.js",allFrames: true}
     chrome.runtime.onConnect.addListener (port) =>
       #console.log port.name
       # portname == 'skeleton' ?
@@ -30,21 +32,34 @@ class BackTransport
       message: message
     })
 
+  deleteScripts: (document)->
+    body = document.getElementsByTagName('body')[0]
+    scripts= document.getElementsByTagName 'script'
+    for script in scripts
+      if script.hasAttribute "src"
+        script.setAttribute "src"," "
+      else
+        script.innerHTML = " "
+    console.log scripts
+    return document
+
   save: (port,url,html) ->
     _html = document.createElement 'html'
     _html.innerHTML = html
     obj = {
       url: url
       html: html
-      document: _html
+      document: @deleteScripts _html
       childrenArray: []
     }
     console.log "FRAMES!@#: #{obj.document.getElementsByTagName('iframe').length}"
+    console.log obj.document.getElementsByTagName 'iframe'
     if port.sender.frameId == 0
       @MainURL = obj.url
       @dictionary['root_Page'] = obj
     else
       if url == 'about:srcdoc'
+        console.log "FRAME SRCDOC"
         hashCode = getHash obj.document.innerHTML
         #console.log "SRCDOC: #{obj.document.innerHTML},hashCode: #{hashCode}"
         @dictionary[hashCode] = obj
@@ -85,8 +100,9 @@ class BackTransport
       else if frame.hasAttribute 'src'
         #console.log "In hash url: #{frame.getAttribute 'src'}"
         hashCode = convertURL(frame.getAttribute('src'), obj.url)
+        console.log hashCode
+        console.log @dictionary[hashCode]
         if @dictionary[hashCode]?
-          console.log "ZDAROVA PIDR"
           flag = 0
           for _obj in obj.childrenArray
             console.log _obj.document.innerHTML
@@ -112,62 +128,96 @@ class BackTransport
     for key, dom of @dictionary
       console.log "KEY:",key
       console.log "dom:", dom.document
-      documentTags = dom.document.querySelectorAll 'img,link,a,svg'
+      documentTags = dom.document.querySelectorAll 'img,link'
       console.log documentTags
       for tag in documentTags
         if tag.hasAttribute 'src'
-          console.log "Base64 src"
-          console.log tag
           counter++
           src = tag.getAttribute('src')
           Base64  src,tag, (error, tag, result) =>
+            #console.log tag
+            #console.log result
             counter--
+            console.log counter
             if error?
               console.error "Base 64 error:",src,error.stack
             else
-              console.log "AFTER",tag.id, tag.src,tag.getAttribute('src')
               tag.setAttribute "src",result
-              console.log tag.getAttribute('src')
-              #console.log @dictionary['root_Page']
               if counter == 0
                 console.log "COUNTER ==0,src"
-                @createNewObj @dictionary['root_Page']
-                file = new File(["<html>",@dictionary['root_Page'].document.innerHTML,"</html>"],"index.txt", {type: "text/plain;charset=utf-8"})
-                FileSaver.saveAs(file)
-            #console.log obj.document.innerHTML
-        if tag.getAttribute 'href'
-          console.log "Base64 href"
-          console.log tag
-          counter++
-          href = tag.getAttribute('href')
-          Base64  href,tag, (error, tag, result) =>
-            counter--
-            if error?
-              console.error "Base 64 error:",src,error.stack
-            else
-              console.log "AFTER",tag.id, tag.getAttribute('href')
-              tag.setAttribute "href",result
-              console.log tag.getAttribute('href')
-              #console.log @dictionary['root_Page']
-              if counter == 0
-                console.log "COUNTER ==0,src"
+                console.log @dictionary['root_Page'].document
                 @createNewObj @dictionary['root_Page']
                 console.log "SAVE"
-                file = new File([@dictionary['root_Page'].document.innerHTML],"index.txt", {type: "text/plain;charset=utf-8"})
+                file = new File(["<html>",@dictionary['root_Page'].document.innerHTML,"</html>"],"index.txt", {type: "text/plain;charset=utf-8"})
                 FileSaver.saveAs(file)
+        if tag.hasAttribute 'href'
+          counter++
+          type = tag.getAttribute 'type'
+          if (type == "text/css")
+            #console.log "CSS"
+            console.log tag.getAttribute 'href'
+            console.log dom.url
+            href = convertURL(tag.getAttribute('href'), dom.url)
+            console.log "link href: ",href
+            console.log dom.document
+            source = xhr href
+            console.log source
+            console.log counter, "BEFORE",dom
+            gonzales source, dom, href, (result,dom) =>
+              console.log result
+              style = document.createElement 'style'
+              style.innerHTML = result
+              dom.document.appendChild style
+              console.log dom.document
+              console.log "STYLE",style
+              counter--
+              console.log counter
+              if counter == 0
+                console.log "COUNTER ==0,src"
+                console.log @dictionary['root_Page'].document
+                @createNewObj @dictionary['root_Page']
+                console.log "SAVE"
+                file = new File(["<html>",@dictionary['root_Page'].document.innerHTML,"</html>"],"index.txt", {type: "text/plain;charset=utf-8"})
+                FileSaver.saveAs(file)
+                console.log dom.document
+          else
+            console.log "Base64 href"
+            console.log tag
+            href = tag.getAttribute('href')
+            Base64  href,tag, (error,tag, result) =>
+              #console.log tag
+              #console.log result
+              counter--
+              console.log counter
+              if error?
+                console.error "Base 64 error:",src,error.stack
+              else
+                tag.setAttribute "href",result
+                #console.log tag.getAttribute('href')
+                #console.log @dictionary['root_Page']
+                if counter == 0
+                  console.log "COUNTER ==0,src"
+                  console.log @dictionary['root_Page'].document
+                  @createNewObj @dictionary['root_Page']
+                  console.log "SAVE"
+                  file = new File([@dictionary['root_Page'].document.innerHTML],"index.html", {type: "text/plain;charset=utf-8"})
+                  FileSaver.saveAs(file)
 
             #console.log obj.document.innerHTML
 
   createNewObj: (obj) ->
     for _obj in obj.childrenArray
       @createNewObj _obj
+    links = obj.document.getElementsByTagName 'link'
+    for link in links
+      if link.getAttribute('type') == "text/css"
+        link.setAttribute "href"," "
     frames = obj.document.getElementsByTagName 'iframe'
     for frame in frames
       if frame.hasAttribute 'src'
         hashCode = convertURL(frame.getAttribute('src'), obj.url)
         result = @dictionary[hashCode]
         frame.srcdoc = result.document.innerHTML
-
     
 
 

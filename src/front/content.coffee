@@ -6,5 +6,5 @@ class FrontSkeleton
     @transport = new FrontTransport @
 
     
-
+console.log "INJECTED"
 skeleton = new FrontSkeleton

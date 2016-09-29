@@ -133,7 +133,7 @@ class BackTransport
       for tag in documentTags
         if tag.hasAttribute 'src'
           counter++
-          src = tag.getAttribute('src')
+          src = convertURL(tag.getAttribute('src'),dom.url)
           Base64  src,tag, (error, tag, result) =>
             #console.log tag
             #console.log result
@@ -152,8 +152,7 @@ class BackTransport
                 FileSaver.saveAs(file)
         if tag.hasAttribute 'href'
           counter++
-          type = tag.getAttribute 'type'
-          if (type == "text/css")
+          if ((tag.getAttribute('type') == "text/css") || (tag.getAttribute('rel') == "stylesheet"))
             #console.log "CSS"
             console.log tag.getAttribute 'href'
             console.log dom.url
@@ -183,7 +182,7 @@ class BackTransport
           else
             console.log "Base64 href"
             console.log tag
-            href = tag.getAttribute('href')
+            href = convertURL(tag.getAttribute('href'),dom.url)
             Base64  href,tag, (error,tag, result) =>
               #console.log tag
               #console.log result
@@ -210,7 +209,7 @@ class BackTransport
       @createNewObj _obj
     links = obj.document.getElementsByTagName 'link'
     for link in links
-      if link.getAttribute('type') == "text/css"
+      if ((link.getAttribute('type') == "text/css") || (link.getAttribute('rel') == "stylesheet"))
         link.setAttribute "href"," "
     frames = obj.document.getElementsByTagName 'iframe'
     for frame in frames

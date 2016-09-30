@@ -14,7 +14,7 @@ convertToBase64 = (url, elem, callback) ->
       reader.readAsDataURL(blob)
   xhr.onerror = (e) ->
     console.log "Error " + e.target.status + " occurred while receiving the document."
-    callback e, elem, " "
+    callback e, elem, url
   xhr.send()
 
 module.exports = convertToBase64

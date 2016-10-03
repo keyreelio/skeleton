@@ -3,13 +3,14 @@ convertURL = require '../modules/getRelativeLink.coffee'
 convertToBase64 = require '../modules/base64.coffee'
 module.exports = (src,dom,source,callback) ->
   uriFound = false
-  src = src.replace(/"/g,"'")
   ast = gonzales.srcToCSSP(src)
   console.log(ast)
   counter1 = 0
   find = (A) ->
     if A[0] != 'uri'
       [1..A.length].filter((i) -> Array.isArray A[i]).forEach (i) -> find A[i]
+    else if A[1][1].indexOf("data:") !=-1
+      return
     else
       uriFound = true
       counter1 += 1
@@ -27,8 +28,9 @@ module.exports = (src,dom,source,callback) ->
         if error?
           console.error "Base 64 error:",error.stack
         if counter1 == 0
+          console.error "PRIVETE"
           callback gonzales.csspToSrc(ast),dom
-      return
+        return
     return
   find ast
   if not uriFound

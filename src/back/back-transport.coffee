@@ -150,6 +150,7 @@ class BackTransport
                 console.log "SAVE"
                 file = new File(["<html>",@dictionary['root_Page'].document.innerHTML,"</html>"],"index.txt", {type: "text/plain;charset=utf-8"})
                 FileSaver.saveAs(file)
+                @dictionary = {}
         if tag.hasAttribute 'href'
           counter++
           if ((tag.getAttribute('type') == "text/css") || (tag.getAttribute('rel') == "stylesheet"))
@@ -160,10 +161,8 @@ class BackTransport
             console.log "link href: ",href
             console.log dom.document
             source = xhr href
-            console.log source
             console.log counter, "BEFORE",dom
             gonzales source, dom, href, (result,dom) =>
-              console.log result
               style = document.createElement 'style'
               style.innerHTML = result
               dom.document.appendChild style
@@ -173,12 +172,11 @@ class BackTransport
               console.log counter
               if counter == 0
                 console.log "COUNTER ==0,src"
-                console.log @dictionary['root_Page'].document
                 @createNewObj @dictionary['root_Page']
                 console.log "SAVE"
                 file = new File(["<html>",@dictionary['root_Page'].document.innerHTML,"</html>"],"index.txt", {type: "text/plain;charset=utf-8"})
                 FileSaver.saveAs(file)
-                console.log dom.document
+                @dictionary = {}
           else
             console.log "Base64 href"
             console.log tag
@@ -201,6 +199,7 @@ class BackTransport
                   console.log "SAVE"
                   file = new File([@dictionary['root_Page'].document.innerHTML],"index.html", {type: "text/plain;charset=utf-8"})
                   FileSaver.saveAs(file)
+                  @dictionary = {}
 
             #console.log obj.document.innerHTML
 

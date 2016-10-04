@@ -162,10 +162,11 @@ class BackTransport
             console.log dom.document
             source = xhr href
             console.log counter, "BEFORE",dom
-            gonzales source, dom, href, (result,dom) =>
+            gonzales source, tag, href, (result,tag) =>
               style = document.createElement 'style'
               style.innerHTML = result
-              dom.document.appendChild style
+              tag.parentElement.insertBefore style,tag
+              tag.parentElement.removeChild tag
               console.log dom.document
               console.log "STYLE",style
               counter--
@@ -202,8 +203,11 @@ class BackTransport
                   @dictionary = {}
         else
           counter++
-          source = tag.innerHTML
           console.error tag
+          source = tag.innerHTML
+          if not source
+            counter--
+            continue
           gonzales source,tag,dom.url,(result,tag) =>
             tag.innerHTML = result
             console.error tag

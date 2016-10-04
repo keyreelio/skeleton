@@ -45,6 +45,7 @@ getEnd = (main) ->
 
 
 module.exports = (url,main) ->
+  url = url.replace(/\s/g,'')
   console.warn "URL: ",url
   console.warn "MAIN: ",main
   if ((url[0]=='"' && url[url.length-1]=='"') || (url[0]=="'" && url[url.length-1]=="'"))

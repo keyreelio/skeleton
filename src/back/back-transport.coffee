@@ -128,10 +128,10 @@ class BackTransport
     for key, dom of @dictionary
       console.log "KEY:",key
       console.log "dom:", dom.document
-      documentTags = dom.document.querySelectorAll 'img,link'
+      documentTags = dom.document.querySelectorAll 'img,link,style'
       console.log documentTags
       for tag in documentTags
-        if tag.hasAttribute 'src'
+        if(tag.hasAttribute('src'))
           counter++
           src = convertURL(tag.getAttribute('src'),dom.url)
           Base64  src,tag, (error, tag, result) =>
@@ -151,7 +151,7 @@ class BackTransport
                 file = new File(["<html>",@dictionary['root_Page'].document.innerHTML,"</html>"],"index.txt", {type: "text/plain;charset=utf-8"})
                 FileSaver.saveAs(file)
                 @dictionary = {}
-        if tag.hasAttribute 'href'
+        else if(tag.hasAttribute('href'))
           counter++
           if ((tag.getAttribute('type') == "text/css") || (tag.getAttribute('rel') == "stylesheet"))
             #console.log "CSS"
@@ -200,6 +200,21 @@ class BackTransport
                   file = new File([@dictionary['root_Page'].document.innerHTML],"index.html", {type: "text/plain;charset=utf-8"})
                   FileSaver.saveAs(file)
                   @dictionary = {}
+        else
+          counter++
+          source = tag.innerHTML
+          console.error tag
+          gonzales source,tag,dom.url,(result,tag) =>
+            tag.innerHTML = result
+            console.error tag
+            counter--
+            if counter == 0
+              console.log "SAVE"
+              @createNewObj @dictionary['root_Page']
+              file = new File(["<html>",@dictionary['root_Page'].document.innerHTML,"</html>"],"index.txt", {type: "text/plain;charset=utf-8"})
+              FileSaver.saveAs(file)
+              @dictionary = {}
+
 
             #console.log obj.document.innerHTML
 

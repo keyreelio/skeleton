@@ -56,10 +56,6 @@ module.exports = (url,main) ->
     return url
   URI = takeUrl(url)
   url = URI[0]
-  console.log URI[2]
-  end = getEnd(main)
-  if url.indexOf(end) == 0
-    url= url.substr(end.length+1)
   if URI[2] == true
     return takeMain(main,URI[1],URI[2])+"/"+url
   else

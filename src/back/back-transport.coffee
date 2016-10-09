@@ -12,25 +12,37 @@ class TreeElementNotFound extends Error
 class BackTransport
   constructor: (@callbackObject) ->
     expect(@callbackObject).to.exist
-    @MainURL = ""
     @dictionary={}
-    chrome.browserAction.onClicked.addListener () ->
+    @flag = false
+    chrome.browserAction.onClicked.addListener () =>
       console.log "Button pressed!"
-      chrome.tabs.query {active: true, currentWindow: true},(tabArray) ->
-        chrome.tabs.executeScript tabArray[0].id, {file: "content.min.js",allFrames: true}
-    chrome.runtime.onConnect.addListener (port) =>
-      #console.log port.name
-      # portname == 'skeleton' ?
-      port.onMessage.addListener (message) =>
-        @callbackObject.receive port, message
-        #@callbackObject.onClicked message
-
-
-  send: (port, name, message) ->
-    port.postMessage ({
-      name: name
-      message: message
-    })
+      chrome.tabs.query {active: true, currentWindow: true},(tabArray) =>
+        #console.log "qwerty"
+        #chrome.tabs.executeScript tabArray[0].id, {file: "content.min.js",allFrames: true},(array) ->
+          #console.log "QWERTY",array
+        chrome.tabs.executeScript tabArray[0].id, {code:"function getFrameId () {
+  var fid = [];
+  function _get_frame_id (win) {
+    var idx, parent = win.parent;
+    if (win === parent) {
+      return;
+    }
+    idx = '?';
+    for (var i=0; i< parent.frames.length; i++) {
+        if (win === parent.frames[i]) {
+            idx = i;
+            break
+        }
+    }
+    fid.unshift(idx);
+    _get_frame_id(parent);
+  }
+  _get_frame_id(window);
+  return fid.join(':')
+};
+[document.URL,document.documentElement.innerHTML,getFrameId()]",allFrames: true, matchAboutBlank: true},(array) =>
+          console.log array
+          @save array
 
   deleteScripts: (document)->
     body = document.getElementsByTagName('body')[0]
@@ -43,198 +55,90 @@ class BackTransport
     console.log scripts
     return document
 
-  save: (port,url,html) ->
-    _html = document.createElement 'html'
-    _html.innerHTML = html
-    obj = {
-      url: url
-      html: html
-      document: @deleteScripts _html
-      childrenArray: []
-    }
-    console.log "FRAMES!@#: #{obj.document.getElementsByTagName('iframe').length}"
-    console.log obj.document.getElementsByTagName 'iframe'
-    if port.sender.frameId == 0
-      @MainURL = obj.url
-      @dictionary['root_Page'] = obj
-    else
-      if url == 'about:srcdoc'
-        console.log "FRAME SRCDOC"
-        hashCode = getHash obj.document.innerHTML
-        #console.log "SRCDOC: #{obj.document.innerHTML},hashCode: #{hashCode}"
-        @dictionary[hashCode] = obj
-      else
-        #console.log "HASH SRC: #{hashCode}"
-        @dictionary[obj.url] = obj
-        #console.log @dictionary[hashCode].document.innerHTML
-    if @dictionary['root_Page']?
-      try
-        @createTree @dictionary['root_Page']
-        #@consoleTree @dictionary['root_Page']
-        @parce @dictionary['root_Page']
-      catch e
-        if not e instanceof TreeElementNotFound
-          throw e
-        else console.log e.message
+  save: (DOMS) ->
+    for dom in DOMS
+      _html = document.createElement 'html'
+      _html.innerHTML = dom[1]
+      obj = {
+        url: dom[0]
+        document: @deleteScripts _html
+      }
+      @dictionary[dom[2]] = obj
+    console.log @dictionary
+    @parse(@callback)
 
-  createTree: (obj) ->
-    frames = obj.document.getElementsByTagName 'iframe'
-    for frame in frames
-      if frame.hasAttribute 'srcdoc'
-        _html = document.createElement 'html'
-        _html.innerHTML = frame.getAttribute 'srcdoc'
-        hashCode = getHash _html.innerHTML
-        if @dictionary[hashCode]?
-          flag = 0
-          for _obj in obj.childrenArray
-            if _obj.document.innerHTML == @dictionary[hashCode].document.innerHTML
-              flag++
-              break
-          if flag == 0
-            obj.childrenArray.push @dictionary[hashCode]
-          for _obj in obj.childrenArray
-            @createTree _obj
-        else
-        #declare signal for checking error
-          throw new TreeElementNotFound 'message'
-      else if frame.hasAttribute 'src'
-        #console.log "In hash url: #{frame.getAttribute 'src'}"
-        hashCode = convertURL(frame.getAttribute('src'), obj.url)
-        console.log hashCode
-        console.log @dictionary[hashCode]
-        if @dictionary[hashCode]?
-          flag = 0
-          for _obj in obj.childrenArray
-            console.log _obj.document.innerHTML
-            if _obj.document.innerHTML == @dictionary[hashCode].document.innerHTML
-              flag++
-              break
-          if flag == 0
-            obj.childrenArray.push @dictionary[hashCode]
-          for _obj in obj.childrenArray
-            @createTree _obj
-        else
-          #use throw for exit from recursion
-          throw new TreeElementNotFound 'message'
-  
-  consoleTree: (obj) ->
-    for _obj in obj.childrenArray
-      @consoleTree _obj
-    console.log obj.url
-    console.log obj.document.innerHTML
+  callback: (counter) =>
+    console.log counter
+    if counter == 0 && @flag == true
+      console.log @dictionary
+      @createNewObj @dictionary[""],""
+      file = new File(["<html>",@dictionary[""].document.innerHTML,"</html>"],"index.txt", {type: "text/plain;charset=utf-8"})
+      FileSaver.saveAs(file)
+      @dictionary = {}
 
-  parce: (obj) ->
+  parse: (callback) ->
+    console.warn "DICTINARY",@dictionary
     counter = 0
-    for key, dom of @dictionary
-      console.log "KEY:",key
-      console.log "dom:", dom.document
-      documentTags = dom.document.querySelectorAll 'img,link,style'
-      console.log documentTags
-      for tag in documentTags
+    for key,dom of @dictionary
+      tags = dom.document.querySelectorAll 'img,link,style'
+      for tag in tags
+        counter+=1
         if(tag.hasAttribute('src'))
-          counter++
-          src = convertURL(tag.getAttribute('src'),dom.url)
-          Base64  src,tag, (error, tag, result) =>
-            #console.log tag
-            #console.log result
+          src = convertURL tag.getAttribute('src'), dom.url
+          Base64 src,tag,(error,tag,result) ->
             counter--
-            console.log counter
             if error?
-              console.error "Base 64 error:",src,error.stack
+              console.error "(src)Base 64 error:",error.stack
             else
               tag.setAttribute "src",result
-              if counter == 0
-                console.log "COUNTER ==0,src"
-                console.log @dictionary['root_Page'].document
-                @createNewObj @dictionary['root_Page']
-                console.log "SAVE"
-                file = new File(["<html>",@dictionary['root_Page'].document.innerHTML,"</html>"],"index.txt", {type: "text/plain;charset=utf-8"})
-                FileSaver.saveAs(file)
-                @dictionary = {}
+            callback counter
         else if(tag.hasAttribute('href'))
-          counter++
-          if ((tag.getAttribute('type') == "text/css") || (tag.getAttribute('rel') == "stylesheet"))
-            #console.log "CSS"
-            console.log tag.getAttribute 'href'
-            console.log dom.url
+          if(tag.getAttribute('rel') == "stylesheet")
             href = convertURL(tag.getAttribute('href'), dom.url)
-            console.log "link href: ",href
-            console.log dom.document
-            source = xhr href
-            console.log counter, "BEFORE",dom
-            gonzales source, tag, href, (result,tag) =>
+            gonzales xhr(href),tag,href,(error,tag,result) ->
+              console.log counter
+              counter--
               style = document.createElement 'style'
               style.innerHTML = result
+              k = tag.parentElement
+              console.log k
+              console.log style
               tag.parentElement.insertBefore style,tag
               tag.parentElement.removeChild tag
-              console.log dom.document
-              console.log "STYLE",style
-              counter--
-              console.log counter
-              if counter == 0
-                console.log "COUNTER ==0,src"
-                @createNewObj @dictionary['root_Page']
-                console.log "SAVE"
-                file = new File(["<html>",@dictionary['root_Page'].document.innerHTML,"</html>"],"index.txt", {type: "text/plain;charset=utf-8"})
-                FileSaver.saveAs(file)
-                @dictionary = {}
+              console.log k.parentElement
+              callback counter
           else
-            console.log "Base64 href"
-            console.log tag
-            href = convertURL(tag.getAttribute('href'),dom.url)
-            Base64  href,tag, (error,tag, result) =>
-              #console.log tag
-              #console.log result
+            href = convertURL(tag.getAttribute('href'), dom.url)
+            Base64 href,tag,(error,tag,result) ->
               counter--
-              console.log counter
               if error?
-                console.error "Base 64 error:",src,error.stack
+                console.error "(href) Base 64 error:",error.stack
               else
                 tag.setAttribute "href",result
-                #console.log tag.getAttribute('href')
-                #console.log @dictionary['root_Page']
-                if counter == 0
-                  console.log "COUNTER ==0,src"
-                  console.log @dictionary['root_Page'].document
-                  @createNewObj @dictionary['root_Page']
-                  console.log "SAVE"
-                  file = new File([@dictionary['root_Page'].document.innerHTML],"index.html", {type: "text/plain;charset=utf-8"})
-                  FileSaver.saveAs(file)
-                  @dictionary = {}
+              callback counter
         else
-          counter++
-          console.error tag
-          source = tag.innerHTML
-          if not source
+          gonzales tag.innerHTML,tag,dom.url,(error,tag,result) ->
             counter--
-            continue
-          gonzales source,tag,dom.url,(result,tag) =>
-            tag.innerHTML = result
-            console.error tag
-            counter--
-            if counter == 0
-              console.log "SAVE"
-              @createNewObj @dictionary['root_Page']
-              file = new File(["<html>",@dictionary['root_Page'].document.innerHTML,"</html>"],"index.txt", {type: "text/plain;charset=utf-8"})
-              FileSaver.saveAs(file)
-              @dictionary = {}
+            if error?
+              console.error "(style)gonzales error:",error.stack
+            else
+              tag.innerHTML = result
+            callback counter
+        console.log counter
+    @flag = true
 
 
-            #console.log obj.document.innerHTML
 
-  createNewObj: (obj) ->
-    for _obj in obj.childrenArray
-      @createNewObj _obj
-    links = obj.document.getElementsByTagName 'link'
-    for link in links
-      if ((link.getAttribute('type') == "text/css") || (link.getAttribute('rel') == "stylesheet"))
-        link.setAttribute "href"," "
+  createNewObj: (obj,str) ->
     frames = obj.document.getElementsByTagName 'iframe'
-    for frame in frames
-      if frame.hasAttribute 'src'
-        hashCode = convertURL(frame.getAttribute('src'), obj.url)
-        result = @dictionary[hashCode]
-        frame.srcdoc = result.document.innerHTML
+    for i in [0...frames.length]
+      key = str+i
+      if @dictionary[key]?
+        @createNewObj @dictionary[key],key+":"
+        frames[i].setAttribute "srcdoc", @dictionary[key].document.innerHTML
+      else
+        frames[i].parentElement.removeChild(frames[i])
+
     
 
 

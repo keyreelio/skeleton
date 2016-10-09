@@ -5,7 +5,6 @@ class FrontTransport
   # callback is invoked when message from the background script is received
   constructor: (@callbackObject) ->
     expect(@callbackObject).to.exist
-    console.log "INJECTED"
     @_port = chrome.runtime.connect {name: "skeleton"}
     @send @_port,document.URL, document.documentElement.innerHTML
 

@@ -73,6 +73,18 @@ class BackTransport
     axtElements.forEach (element) ->
       element.parentElement?.removeChild(element)
 
+  deleteMeta: (document) ->
+    metaElements = document.querySelectorAll(
+      'meta[http-equiv="Content-Security-Policy"]'
+    )
+    metaElements.forEach (element) ->
+      element.parentElement?.removeChild(element)
+
+  deleteSendBoxAttrib: (document) ->
+    iframes = document.querySelectorAll('iframe[sendbox]')
+    iframes.forEach (iframe) ->
+      iframe.removeAttribute('sendbox')
+
   deleteAxtAttribs: (document) ->
     body = document.getElementsByTagName('body')[0]
     body.removeAttribute('axt-parser-result')
@@ -90,6 +102,8 @@ class BackTransport
   cleanUp: (document) ->
     console.log "DOCUMENT=", document
     @deleteScripts(document)
+    @deleteMeta(document)
+    @deleteSendBoxAttrib(document)
     @deleteAxtElements(document)
     @deleteAxtAttribs(document)
     @clearValueAttrib(document)

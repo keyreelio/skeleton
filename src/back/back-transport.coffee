@@ -6,6 +6,8 @@ FileSaver = require 'file-saver'
 xhr = require '../modules/xhr.coffee'
 gonzales = require '../modules/gonzales.coffee'
 
+META_ATTRIBS_FOR_DEL = ['Content-Security-Policy', 'refresh']
+ONEVENT_ATTRIBS = [ 'onload', 'onclick', 'onkeypress' ]
 
 class TreeElementNotFound extends Error
 
@@ -74,11 +76,10 @@ class BackTransport
       element.parentElement?.removeChild(element)
 
   deleteMeta: (document) ->
-    metaElements = document.querySelectorAll(
-      'meta[http-equiv="Content-Security-Policy"]'
-    )
+    metaElements = document.querySelectorAll('meta[http-equiv]')
     metaElements.forEach (element) ->
-      element.parentElement?.removeChild(element)
+      if element.getAttribute('http-equiv') in META_ATTRIBS_FOR_DEL
+        element.parentElement?.removeChild(element)
 
   deleteSendBoxAttrib: (document) ->
     iframes = document.querySelectorAll('iframe[sendbox]')
@@ -99,10 +100,18 @@ class BackTransport
     inputs.forEach (input) ->
       input.setAttribute('value', '') if input.getAttribute('value')
 
+  clearOnEventAttribs: (document) ->
+    elements = document.querySelectorAll("[#{ONEVENT_ATTRIBS.join('],[')}]")
+    elements.forEach (element) ->
+      for attr in element.attributes
+        if attr?.name in ONEVENT_ATTRIBS
+          element.removeAttribute(attr.name)
+
   cleanUp: (document) ->
     console.log "DOCUMENT=", document
     @deleteScripts(document)
     @deleteMeta(document)
+    @clearOnEventAttribs(document)
     @deleteSendBoxAttrib(document)
     @deleteAxtElements(document)
     @deleteAxtAttribs(document)
@@ -167,10 +176,10 @@ class BackTransport
               callback counter
           else
             href = convertURL(tag.getAttribute('href'), dom.url)
-            Base64 href,tag,(error, tag, result) ->
+            Base64 href, tag, (error, tag, result) ->
               counter--
               if error?
-                console.error "(href) Base 64 error:", error.stack
+                console.error "(href) Base64 error (href=#{href}):", error.stack
               else
                 tag.setAttribute "href", result
               callback counter
@@ -179,6 +188,7 @@ class BackTransport
             counter--
             if error?
               console.error "(style)gonzales error:", error.stack
+              console.error tag.innerHTML
             else
               tag.innerHTML = result
             callback counter

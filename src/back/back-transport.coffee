@@ -144,7 +144,7 @@ class BackTransport
       @createNewObj @dictionary[""],""
       file = new File(
         [@getAttribute(@dictionary[""].header),@dictionary[""].document.innerHTML, "</html>"],
-        "index.html",
+        @dictionary[""].document.getElementsByTagName('title')[0].innerHTML+".html",
         {type: "text/html;charset=utf-8"}
       )
       FileSaver.saveAs(file)

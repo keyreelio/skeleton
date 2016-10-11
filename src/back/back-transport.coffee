@@ -35,9 +35,15 @@ class BackTransport
             _get_frame_id(parent)
           _get_frame_id(window)
           return fid.join ':'
-        # Function returns iframe url, content and iframe-path 
+        getAttribute = (array)->
+          mas = []
+          for elem in array
+            mas.push(elem.nodeName,elem.nodeValue)
+          return mas
+        # Function returns iframe url, content and iframe-path
         [ document.URL,
           document.documentElement.innerHTML,
+          getAttribute(document.documentElement.attributes),
           getFramePath()
         ]
 
@@ -108,7 +114,7 @@ class BackTransport
           element.removeAttribute(attr.name)
 
   cleanUp: (document) ->
-    console.log "DOCUMENT=", document
+    #console.log "DOCUMENT=", document
     @deleteScripts(document)
     @deleteMeta(document)
     @clearOnEventAttribs(document)
@@ -124,8 +130,9 @@ class BackTransport
       _html.innerHTML = dom[1]
       obj =
         url: dom[0]
+        header: dom[2]
         document: @cleanUp _html
-      @dictionary[dom[2]] = obj
+      @dictionary[dom[3]] = obj
 
     console.log @dictionary
     @parse(@callback)
@@ -136,7 +143,7 @@ class BackTransport
       console.log @dictionary
       @createNewObj @dictionary[""],""
       file = new File(
-        ["<html>",@dictionary[""].document.innerHTML, "</html>"],
+        [@getAttribute(@dictionary[""].header),@dictionary[""].document.innerHTML, "</html>"],
         "index.html",
         {type: "text/html;charset=utf-8"}
       )
@@ -195,16 +202,25 @@ class BackTransport
         console.log counter
     @flag = true
 
-
+  
   createNewObj: (obj,str) ->
     frames = obj.document.getElementsByTagName 'iframe'
     for i in [0...frames.length]
       key = str+i
       if @dictionary[key]?
         @createNewObj @dictionary[key], key + ":"
-        frames[i].setAttribute "srcdoc", @dictionary[key].document.innerHTML
+        frames[i].setAttribute "srcdoc",  @getAttribute(@dictionary[key].header)+@dictionary[key].document.innerHTML+"</html>"
       else
         frames[i].parentElement.removeChild(frames[i])
+
+  getAttribute: (array) ->
+    src = "<html "
+    for i in [0...array.length] by 2
+      if array[i+1]?
+        src+=array[i]+'="'+array[i+1]+'" '
+      else
+        break
+    return src+=">"
 
 
 module.exports = BackTransport

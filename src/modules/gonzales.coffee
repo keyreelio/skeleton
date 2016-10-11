@@ -1,11 +1,23 @@
 gonzales = require 'gonzales'
 convertURL = require '../modules/getRelativeLink.coffee'
 convertToBase64 = require '../modules/base64.coffee'
+
+
+recompose = (convMas,elemMas,tag,callback)->
+  src = ""
+  i = 0
+  for elem in elemMas
+    src+=elem
+    if convMas[i]?
+      src+=convMas[i]
+      i++
+  console.log tag.parentElement
+  callback null,tag,src
+
 module.exports = (src,dom,source,callback) ->
   uriFound = false
   try
     ast = gonzales.srcToCSSP(src)
-    console.log(ast)
     counter1 = 0
     find = (A) ->
       if A[0] != 'uri'
@@ -37,8 +49,38 @@ module.exports = (src,dom,source,callback) ->
     if not uriFound
       callback null,dom,src
   catch e
-    callback(e,dom,src)
-
-  console.log counter1
+    console.log "HALLOW",src,dom
+    urlMas = []
+    elemMas = []
+    convMas = []
+    uriFound = false
+    counter = 0
+    i = 0
+    while i<src.length
+      k = src.indexOf "url(",i
+      if k!= -1
+        uriFound = true
+        elemMas.push src.substring(i,k+4)
+        j = src.indexOf ")",k+1
+        urlMas.push convertURL(src.substring(k+4,j),source)
+        i = j
+      else
+        elemMas.push src.substring(i,src.length)
+        break
+    console.log "OK:!",urlMas,elemMas
+    if not uriFound
+      callback null,dom,src
+    else
+      console.log urlMas
+      [0...urlMas.length].forEach (i)->
+        counter++
+        convertToBase64 urlMas[i],dom,(error,obj,result)->
+          counter--
+          if error?
+            console.log "Error base64:",error.stack
+          else
+            convMas.push result
+            if counter == 0
+              recompose convMas,elemMas,dom,callback
   #ast[1][1][1][1][1] = 'privet'
   #console.log(gonzales.csspToTree(ast))

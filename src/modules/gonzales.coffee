@@ -33,19 +33,19 @@ module.exports = (src,dom,source,callback) ->
         counter1 += 1
         #console.log A[1]
         uri = A[1][1]
-        console.log "++",counter1,uri
+        #console.log "++",counter1,uri
         #console.log "CSS_url: #{uri}"
         #console.log source
         href = convertURL uri, source
         convertToBase64 href, A[1], (error, obj, result) ->
-          console.log "--", counter1-1, obj[1]
+          #console.log "--", counter1-1, obj[1]
           obj[1] = result
           counter1 -= 1
           #console.log counter,obj[1]
           if error?
             console.error "Base 64 error:",error.stack
           if counter1 == 0
-            console.error "PRIVETE"
+            #console.error "PRIVETE"
             callback null,dom,gonzales.csspToSrc(ast)
           return
       return
@@ -71,11 +71,11 @@ module.exports = (src,dom,source,callback) ->
       else
         elemMas.push src.substring(i,src.length)
         break
-    console.log "OK:!",urlMas,elemMas
+    #console.log "OK:!",urlMas,elemMas
     if not uriFound
       callback null,dom,src
     else
-      console.log urlMas
+      #console.log urlMas
       [0...urlMas.length].forEach (i)->
         counter++
         convertToBase64 urlMas[i],dom,(error,obj,result,url)->

@@ -1,5 +1,5 @@
 convertToBase64 = (url, elem, callback) ->
-  console.log "Url: #{url}"
+  #console.log "Url: #{url}"
   xhr = new XMLHttpRequest()
   xhr.open 'GET', url, true
   xhr.responseType = 'blob'

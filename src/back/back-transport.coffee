@@ -1,10 +1,10 @@
 do ({expect, assert} = chai = require "chai").should
-getHash = require '../modules/md5.coffee'
 Base64 = require '../modules/base64.coffee'
 convertURL = require '../modules/getRelativeLink.coffee'
 FileSaver = require 'file-saver'
 xhr = require '../modules/xhr.coffee'
 gonzales = require '../modules/gonzales.coffee'
+select = require('optimal-select').select
 
 META_ATTRIBS_FOR_DEL = ['Content-Security-Policy', 'refresh']
 ONEVENT_ATTRIBS = [ 'onload', 'onclick', 'onkeypress' ]
@@ -12,57 +12,31 @@ ONEVENT_ATTRIBS = [ 'onload', 'onclick', 'onkeypress' ]
 class TreeElementNotFound extends Error
 
 class BackTransport
+
   constructor: (@callbackObject) ->
     expect(@callbackObject).to.exist
     @dictionary={}
     @flag = false
+    @complete = false
 
     chrome.browserAction.onClicked.addListener () =>
       # This function is executed on the content page and retrieves its HTML
       # content. Function runs on on the body page and each iframes
-      getSource = () ->
-        getFramePath = () ->
-          fid = []
-          _get_frame_id = (win) ->
-            parent = win.parent
-            return if win == parent
-            idx = '?'
-            for frame, frame_idx in parent.frames
-              if win == frame
-                idx = frame_idx
-                break
-            fid.unshift idx
-            _get_frame_id(parent)
-          _get_frame_id(window)
-          return fid.join ':'
-        getAttribute = (array)->
-          mas = []
-          for elem in array
-            mas.push(elem.nodeName,elem.nodeValue)
-          return mas
-        # Function returns iframe url, content and iframe-path
-        [ document.URL,
-          document.documentElement.innerHTML,
-          getAttribute(document.documentElement.attributes),
-          getFramePath()
-        ]
 
       console.log "Button pressed!"
-      console.log "function=", getSource.toString()
       chrome.tabs.query {active: true, currentWindow: true},(tabArray) =>
-        #console.log "qwerty"
-        #chrome.tabs.executeScript tabArray[0].id,
-        #{ file: "content.min.js",allFrames: true}, (array) ->
-        #  console.log "QWERTY",array
         chrome.tabs.executeScript tabArray[0].id,
-          code: "(" + getSource.toString() + ")()" # transform function to the
-                                                   # string and wrap it to
-                                                   # execute it immidiatelly
-                                                   # after injecting
-          allFrames: true
-        , (array) =>
-          console.log "Array=", array
-          @save array
+        file: "content.min.js"
+        allFrames: true
+        matchAboutBlank: true
+        ,(array) =>
+          @parse(@callback)
+        chrome.runtime.onConnect.addListener (port) =>
+          #console.log port.name
+          # portname == 'skeleton' ?
+          port.onMessage.addListener (message) =>
+            console.log message
+            @save message.message
 
   deleteScripts: (document) ->
     scripts = document.querySelectorAll 'script'
@@ -119,21 +93,18 @@ class BackTransport
     @clearValueAttrib(document)
     return document
 
-  save: (DOMS) ->
-    for dom in DOMS
-      _html = document.createElement 'html'
-      _html.innerHTML = dom[1]
-      obj =
-        url: dom[0]
-        header: dom[2]
-        document: @cleanUp _html
-      @dictionary[dom[3]] = obj
-      console.log dom[1],dom[3]
-    #console.log @dictionary
-    @parse(@callback)
+  save: (dom) ->
+    _html = document.createElement 'html'
+    _html.innerHTML = dom[1]
+    obj =
+      url: dom[0]
+      header: dom[2]
+      document: @cleanUp _html
+      framesIdx: dom[4]
+    @dictionary[dom[3]] = obj
 
   callback: (counter) =>
-    console.log counter
+    #console.log counter
     if counter == 0 and @flag == true
       console.log @dictionary
       @createNewObj @dictionary[""],""
@@ -165,16 +136,16 @@ class BackTransport
           if(tag.getAttribute('rel') == "stylesheet")
             href = convertURL(tag.getAttribute('href'), dom.url)
             gonzales xhr(href), tag, href, (error, tag, result) ->
-              console.log counter
+              #console.log counter
               counter--
               style = document.createElement 'style'
               style.innerHTML = result
               parent = tag.parentElement
-              console.log parent
-              console.log style
+              #console.log parent
+              #console.log style
               tag.parentElement.insertBefore style, tag
               tag.parentElement.removeChild tag
-              console.log parent.parentElement
+              #console.log parent.parentElement
               callback counter
           else
             href = convertURL(tag.getAttribute('href'), dom.url)
@@ -194,20 +165,33 @@ class BackTransport
             else
               tag.innerHTML = result
             callback counter
-        console.log counter
+        #console.log counter
     @flag = true
 
   
   createNewObj: (obj,str) ->
+    console.log "START from",str
     frames = obj.document.getElementsByTagName 'iframe'
+    console.log frames
     for frame,i in frames
-      key = str+i
+      selector = select(frame)
+      console.log "SELECTOR",selector
+      console.log "Obj",obj.framesIdx
+      index = -1
+      for key of obj.framesIdx
+        if selector.indexOf(key) != -1
+          index= obj.framesIdx[key]
+      if index == -1
+        continue
+      key = str+index
+      console.log "KEY",key
+      console.warn @dictionary
       if @dictionary[key]?
-        if @dictionary[key].url == frame.getAttribute('src')
-          @createNewObj @dictionary[key], key + ":"
-          frame.setAttribute "srcdoc",  @getAttribute(@dictionary[key].header)+@dictionary[key].document.innerHTML+"</html>"
-        else
-          console.error @dictionary[key].url, frame.getAttribute('src')
+        @createNewObj @dictionary[key], key + ":"
+        console.log frame.getAttribute 'src'
+        frame.setAttribute "srcdoc",  @getAttribute(@dictionary[key].header)+@dictionary[key].document.innerHTML+"</html>"
+      else
+        frame.parentElement.removeChild frame
 
   getAttribute: (array) ->
     src = "<html "

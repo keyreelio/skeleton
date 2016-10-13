@@ -6,15 +6,9 @@ class BackSkeleton
   constructor: ->
     @transport = new BackTransport @
 
-  receive: (port,msg) ->
-    console.log "!name: #{msg.name}  \n!message: #{msg.message}"
-    if msg.name == "about:srcdoc"
-      console.log "HASH back: #{getHash(msg.message)}"
-    else
-      console.log "HASH back: #{msg.name}"
-    @transport.save port,msg.name,msg.message
-
-  send: (port,name,message) ->
-    @transport.send port,name,message
+  receive: (msg) ->
+    console.log "HUY"
+    console.log msg.message
+    @transport.save msg.message
 
 backSkeleton = new BackSkeleton

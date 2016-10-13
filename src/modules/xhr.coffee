@@ -1,6 +1,6 @@
 module.exports = (source) ->
 
-  console.log "Url: #{source}"
+  #console.log "Url: #{source}"
   xhr = new XMLHttpRequest()
   xhr.open 'GET', source, false
   xhr.send()

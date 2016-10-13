@@ -6,15 +6,15 @@ convertToBase64 = (url, elem, callback) ->
   reader = new FileReader()
   xhr.onload = (e) ->
     if this.status != 200
-      callback null, elem," "
+      callback null, elem," ",url
     else
       blob = this.response
       reader.onloadend = () ->
-        callback null, elem, reader.result
+        callback null, elem, reader.result,url
       reader.readAsDataURL(blob)
   xhr.onerror = (e) ->
     console.log "Error " + e.target.status + " occurred while receiving the document."
-    callback e, elem, url
+    callback e, elem, url,url
   xhr.send()
 
 module.exports = convertToBase64

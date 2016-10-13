@@ -59,20 +59,15 @@ class BackTransport
                                                    # string and wrap it to
                                                    # execute it immidiatelly
                                                    # after injecting
-          allFrames: true,
-          matchAboutBlank: true
+          allFrames: true
         , (array) =>
           console.log "Array=", array
           @save array
 
   deleteScripts: (document) ->
-    scripts = document.getElementsByTagName 'script'
+    scripts = document.querySelectorAll 'script'
     for script in scripts
-      if script.hasAttribute "src"
-        script.setAttribute "src", " "
-      else
-        script.innerHTML = " "
-    console.log scripts
+      script.parentElement.removeChild script
     return document
 
   deleteAxtElements: (document) ->
@@ -133,8 +128,8 @@ class BackTransport
         header: dom[2]
         document: @cleanUp _html
       @dictionary[dom[3]] = obj
-
-    console.log @dictionary
+      console.log dom[1],dom[3]
+    #console.log @dictionary
     @parse(@callback)
 
   callback: (counter) =>
@@ -151,7 +146,7 @@ class BackTransport
       @dictionary = {}
 
   parse: (callback) ->
-    console.warn "DICTINARY",@dictionary
+    #console.warn "DICTINARY",@dictionary
     counter = 0
     for key, dom of @dictionary
       tags = dom.document.querySelectorAll 'img,link,style'
@@ -205,13 +200,14 @@ class BackTransport
   
   createNewObj: (obj,str) ->
     frames = obj.document.getElementsByTagName 'iframe'
-    for i in [0...frames.length]
+    for frame,i in frames
       key = str+i
       if @dictionary[key]?
-        @createNewObj @dictionary[key], key + ":"
-        frames[i].setAttribute "srcdoc",  @getAttribute(@dictionary[key].header)+@dictionary[key].document.innerHTML+"</html>"
-      else
-        frames[i].parentElement.removeChild(frames[i])
+        if @dictionary[key].url == frame.getAttribute('src')
+          @createNewObj @dictionary[key], key + ":"
+          frame.setAttribute "srcdoc",  @getAttribute(@dictionary[key].header)+@dictionary[key].document.innerHTML+"</html>"
+        else
+          console.error @dictionary[key].url, frame.getAttribute('src')
 
   getAttribute: (array) ->
     src = "<html "

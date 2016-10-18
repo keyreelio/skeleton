@@ -27,7 +27,12 @@ getSource = () ->
           break
         i++
     return dictionary
-        
+    
+  getDoctype = (doctype)->
+    if doctype?
+      return [doctype.name,doctype.publicId,doctype.systemId]
+    return null
+
   getAttribute = (array)->
     mas = []
     for elem in array
@@ -39,7 +44,8 @@ getSource = () ->
     document.documentElement.innerHTML,
     getAttribute(document.documentElement.attributes),
     getFramePath(),
-    getSelector(document.documentElement.innerHTML)
+    getSelector(document.documentElement.innerHTML),
+    getDoctype(document.doctype)
   ]
 
 send = (port,message) ->

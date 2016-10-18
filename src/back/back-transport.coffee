@@ -17,7 +17,6 @@ class BackTransport
     expect(@callbackObject).to.exist
     @dictionary={}
     @flag = false
-    @complete = false
 
     chrome.browserAction.onClicked.addListener () =>
       # This function is executed on the content page and retrieves its HTML
@@ -101,71 +100,86 @@ class BackTransport
       header: dom[2]
       document: @cleanUp _html
       framesIdx: dom[4]
+      doctype: dom[5]
     @dictionary[dom[3]] = obj
 
-  callback: (counter) =>
+  callback: (counter,counter1) =>
     #console.log counter
-    if counter == 0 and @flag == true
+    if counter == 0 and @flag == true and counter1 == 0
       console.log @dictionary
       @createNewObj @dictionary[""],""
       file = new File(
-        [@getAttribute(@dictionary[""].header),@dictionary[""].document.innerHTML, "</html>"],
+        [@getAttribute(@dictionary[""].header,@dictionary[""].doctype),@dictionary[""].document.innerHTML, "</html>"],
         @dictionary[""].document.getElementsByTagName('title')[0].innerHTML+".html",
         {type: "text/html;charset=utf-8"}
       )
       FileSaver.saveAs(file)
+      @flag = false
       @dictionary = {}
 
   parse: (callback) ->
     #console.warn "DICTINARY",@dictionary
-    counter = 0
+    attributeCounter = 0
+    tagCounter = 0
     for key, dom of @dictionary
+      tagsStyles = dom.document.querySelectorAll '*[style]'
+      for tag in tagsStyles
+        attributeCounter++
+        gonzales tag.getAttribute('style'), tag, dom.url, (error, tag, result) ->
+          attributeCounter--
+          if error?
+            console.error "Style attr error",error
+          else
+            tag.setAttribute('style',result)
+          callback tagCounter,attributeCounter
       tags = dom.document.querySelectorAll 'img,link,style'
       for tag in tags
-        counter+=1
+        tagCounter+=1
         if(tag.hasAttribute('src'))
           src = convertURL tag.getAttribute('src'), dom.url
           Base64 src,tag,(error,tag,result) ->
-            counter--
+            tagCounter--
             if error?
               console.error "(src)Base 64 error:", error.stack
             else
               tag.setAttribute "src", result
-            callback counter
+            callback tagCounter, attributeCounter
         else if(tag.hasAttribute('href'))
           if(tag.getAttribute('rel') == "stylesheet")
             href = convertURL(tag.getAttribute('href'), dom.url)
             gonzales xhr(href), tag, href, (error, tag, result) ->
-              #console.log counter
-              counter--
-              style = document.createElement 'style'
-              style.innerHTML = result
-              parent = tag.parentElement
-              #console.log parent
-              #console.log style
-              tag.parentElement.insertBefore style, tag
-              tag.parentElement.removeChild tag
-              #console.log parent.parentElement
-              callback counter
+              if error?
+                console.error "style error",error
+              else
+                #console.log counter
+                tagCounter--
+                style = document.createElement 'style'
+                style.innerHTML = result
+                parent = tag.parentElement
+                #console.log parent
+                #console.log style
+                tag.parentElement.insertBefore style, tag
+                tag.parentElement.removeChild tag
+                #console.log parent.parentElement
+              callback tagCounter, attributeCounter
           else
             href = convertURL(tag.getAttribute('href'), dom.url)
             Base64 href, tag, (error, tag, result) ->
-              counter--
+              tagCounter--
               if error?
                 console.error "(href) Base64 error (href=#{href}):", error.stack
               else
                 tag.setAttribute "href", result
-              callback counter
+              callback tagCounter, attributeCounter
         else
           gonzales tag.innerHTML, tag, dom.url, (error, tag, result) ->
-            counter--
+            tagCounter--
             if error?
               console.error "(style)gonzales error:", error.stack
               console.error tag.innerHTML
             else
               tag.innerHTML = result
-            callback counter
-        #console.log counter
+            callback tagCounter, attributeCounter
     @flag = true
 
   
@@ -188,19 +202,38 @@ class BackTransport
       console.warn @dictionary
       if @dictionary[key]?
         @createNewObj @dictionary[key], key + ":"
-        console.log frame.getAttribute 'src'
-        frame.setAttribute "srcdoc",  @getAttribute(@dictionary[key].header)+@dictionary[key].document.innerHTML+"</html>"
+        source = @getAttribute(@dictionary[key].header,@dictionary[key].doctype)+@dictionary[key].document.innerHTML+"</html>"
+        frame.setAttribute "srcdoc",  source
+        console.log frame
       else
         frame.parentElement.removeChild frame
 
-  getAttribute: (array) ->
+  getAttribute: (array,status) ->
     src = "<html "
     for i in [0...array.length] by 2
       if array[i+1]?
         src+=array[i]+'="'+array[i+1]+'" '
       else
         break
+    console.log status
+    if status?
+      doctype = @getDoctype(status)
+      console.log doctype
+      return doctype+src
     return src+=">"
+
+  getDoctype: (array) ->
+    src = "<!DOCTYPE "
+    elem = ""
+    for i in [0...array.length]
+      if i == 1
+        src+="PUBLIC "+'"'+array[i]+'" '
+      if i == 2
+        src+='"'+array[i]+'"'
+      if i == 0
+        src+= array[i]+" "
+      console.log src
+    return src+">"
 
 
 module.exports = BackTransport

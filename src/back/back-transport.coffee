@@ -76,13 +76,14 @@ class BackTransport
   deleteAxtAttribs: (document) ->
     body = document.getElementsByTagName('body')[0]
     body.removeAttribute('axt-keyreel-extension-installed')
+    body.removeAttribute('axt-parser-timing')
 
     axtAttrElements = document.querySelectorAll('[axt-visible]')
     axtAttrElements.forEach (element) ->
       element.removeAttribute('axt-visible')
 
   replaceAxtAttribs: (document) ->
-    document.querySelectorAll('[axt-form-type]').forEach (form) ->
+    _processForm = (form) ->
       hardly = form.getAttribute('axt-hardly') == 'true'
       form_type = form.getAttribute('axt-form-type')
 
@@ -115,6 +116,14 @@ class BackTransport
         else
           attrib_name = 'axt-expected-button-type'
         button.setAttribute(attrib_name, button_type)
+
+    # process all forms except <body>
+    document.body.querySelectorAll('[axt-form-type]').forEach(_processForm)
+    # then process <body> if it's a form
+    # WHY? we need it because <body> include all forms, so it can process all
+    # forms inputs as its own. To avoid this we process all forms first and
+    # only then we process <body>
+    _processForm(document.body) if document.body.hasAtribute('axt-form-type')
 
   clearValueAttrib: (document) ->
     inputs = document.querySelectorAll("input[type='password']")

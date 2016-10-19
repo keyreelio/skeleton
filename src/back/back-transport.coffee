@@ -36,7 +36,7 @@ class BackTransport
       # content. Function runs on on the body page and each iframes
 
       console.log "Button pressed!"
-      chrome.tabs.query {active: true, currentWindow: true},(tabArray) =>
+      chrome.tabs.query {active: true, currentWindow: true}, (tabArray) =>
         chrome.tabs.executeScript tabArray[0].id,
         file: "content.min.js"
         allFrames: true
@@ -75,12 +75,46 @@ class BackTransport
 
   deleteAxtAttribs: (document) ->
     body = document.getElementsByTagName('body')[0]
-    body.removeAttribute('axt-parser-result')
     body.removeAttribute('axt-keyreel-extension-installed')
 
     axtAttrElements = document.querySelectorAll('[axt-visible]')
     axtAttrElements.forEach (element) ->
       element.removeAttribute('axt-visible')
+
+  replaceAxtAttribs: (document) ->
+    document.querySelectorAll('[axt-form-type]').forEach (form) ->
+      hardly = form.getAttribute('axt-hardly') == 'true'
+      form_type = form.getAttribute('axt-form-type')
+
+      form.removeAttribute('axt-form-type')
+      form.removeAttribute('axt-hardly')
+      if hardly
+        attrib_name = 'axt-hardly-expected-form-type'
+      else
+        attrib_name = 'axt-expected-form-type'
+      form.setAttribute(attrib_name, form_type)
+
+      form.querySelectorAll('[axt-input-type]').forEach (input) ->
+        input_type = input.getAttribute('axt-input-type')
+        hardly = input.getAttribute('axt-hardly') == 'true'
+        input.removeAttribute('axt-input-type')
+        input.removeAttribute('axt-hardly')
+        if hardly
+          attrib_name = 'axt-hardly-expected-input-type'
+        else
+          attrib_name = 'axt-expected-input-type'
+        input.setAttribute(attrib_name, input_type)
+
+      form.querySelectorAll('[axt-button-type]').forEach (button) ->
+        button_type = button.getAttribute('axt-button-type')
+        hardly = button.getAttribute('axt-hardly') == 'true'
+        button.removeAttribute('axt-button-type')
+        button.removeAttribute('axt-hardly')
+        if hardly
+          attrib_name = 'axt-hardly-expected-button-type'
+        else
+          attrib_name = 'axt-expected-button-type'
+        button.setAttribute(attrib_name, button_type)
 
   clearValueAttrib: (document) ->
     inputs = document.querySelectorAll("input[type='password']")
@@ -88,7 +122,9 @@ class BackTransport
       input.setAttribute('value', '') if input.getAttribute('value')
 
   clearOnEventAttribs: (document) ->
-    elements = document.querySelectorAll("[#{ONEVENT_ATTRIBS.join('],[')}]")
+    elements = document.querySelectorAll(
+      "[#{ONEVENT_ATTRIBS.join('],[')}]"
+    )
     elements.forEach (element) ->
       for attr in element.attributes
         if attr?.name in ONEVENT_ATTRIBS
@@ -102,6 +138,7 @@ class BackTransport
     @deleteSendBoxAttrib(document)
     @deleteAxtElements(document)
     @deleteAxtAttribs(document)
+    @replaceAxtAttribs(document)
     @clearValueAttrib(document)
     return document
 
@@ -116,14 +153,21 @@ class BackTransport
       doctype: dom[5]
     @dictionary[dom[3]] = obj
 
-  callback: (counter,counter1) =>
+  callback: (counter, counter1) =>
     #console.log counter
     if counter == 0 and @flag == true and counter1 == 0
       console.log @dictionary
       @createNewObj @dictionary[""],""
-      file = new File(
-        [@getAttribute(@dictionary[""].header,@dictionary[""].doctype),@dictionary[""].document.innerHTML, "</html>"],
-        @dictionary[""].document.getElementsByTagName('title')[0].innerHTML+".html",
+      file = new File([
+        @getAttribute(
+          @dictionary[""].header,@dictionary[""].doctype
+        ),
+        @dictionary[""].document.innerHTML,
+        "</html>"
+        ],
+        @dictionary[""]
+          .document.getElementsByTagName('title')[0]
+          .innerHTML + ".html",
         {type: "text/html;charset=utf-8"}
       )
       FileSaver.saveAs(file)
@@ -138,19 +182,21 @@ class BackTransport
       tagsStyles = dom.document.querySelectorAll '*[style]'
       for tag in tagsStyles
         attributeCounter++
-        gonzales tag.getAttribute('style'), tag, dom.url, (error, tag, result) ->
-          attributeCounter--
-          if error?
-            console.error "Style attr error",error
-          else
-            tag.setAttribute('style',result)
-          callback tagCounter,attributeCounter
+        gonzales tag.getAttribute('style'), tag, dom.url,
+          (error, tag, result) ->
+            attributeCounter--
+            if error?
+              console.error "Style attr error", error
+            else
+              tag.setAttribute('style', result)
+            callback tagCounter, attributeCounter
       tags = dom.document.querySelectorAll 'img,link,style'
+
       for tag in tags
-        tagCounter+=1
+        tagCounter += 1
         if(tag.hasAttribute('src'))
           src = convertURL tag.getAttribute('src'), dom.url
-          Base64 src,tag,(error,tag,result) ->
+          Base64 src, tag, (error, tag, result) ->
             tagCounter--
             if error?
               console.error "(src)Base 64 error:", error.stack
@@ -162,7 +208,7 @@ class BackTransport
             href = convertURL(tag.getAttribute('href'), dom.url)
             gonzales xhr(href), tag, href, (error, tag, result) ->
               if error?
-                console.error "style error",error
+                console.error "style error", error
               else
                 #console.log counter
                 tagCounter--
@@ -195,58 +241,60 @@ class BackTransport
             callback tagCounter, attributeCounter
     @flag = true
 
-  
-  createNewObj: (obj,str) ->
-    console.log "START from",str
+  createNewObj: (obj, str) ->
+    console.log "START from", str
     frames = obj.document.getElementsByTagName 'iframe'
     console.log frames
-    for frame,i in frames
+    for frame, i in frames
       selector = select(frame)
-      console.log "SELECTOR",selector
-      console.log "Obj",obj.framesIdx
+      console.log "SELECTOR", selector
+      console.log "Obj", obj.framesIdx
       index = -1
       for key of obj.framesIdx
         if selector.indexOf(key) != -1
           index= obj.framesIdx[key]
       if index == -1
         continue
-      key = str+index
-      console.log "KEY",key
+      key = str + index
+      console.log "KEY", key
       console.warn @dictionary
       if @dictionary[key]?
         @createNewObj @dictionary[key], key + ":"
-        source = @getAttribute(@dictionary[key].header,@dictionary[key].doctype)+@dictionary[key].document.innerHTML+"</html>"
+        source = @getAttribute(
+          @dictionary[key].header,
+          @dictionary[key].doctype
+        ) + @dictionary[key].document.innerHTML + "</html>"
         frame.setAttribute "srcdoc",  source
         console.log frame
       else
         frame.parentElement.removeChild frame
 
-  getAttribute: (array,status) ->
+  getAttribute: (array, status) ->
     src = "<html "
     for i in [0...array.length] by 2
       if array[i+1]?
-        src+=array[i]+'="'+array[i+1]+'" '
+        src += array[i] + '="' + array[i+1] + '" '
       else
         break
     console.log status
     if status?
       doctype = @getDoctype(status)
       console.log doctype
-      return doctype+src
-    return src+=">"
+      return doctype + src
+    return src += ">"
 
   getDoctype: (array) ->
     src = "<!DOCTYPE "
     elem = ""
     for i in [0...array.length]
       if i == 1
-        src+="PUBLIC "+'"'+array[i]+'" '
+        src += "PUBLIC " + '"' + array[i] + '" '
       if i == 2
-        src+='"'+array[i]+'"'
+        src += '"' + array[i] + '"'
       if i == 0
-        src+= array[i]+" "
+        src+= array[i] + " "
       console.log src
-    return src+">"
+    return src + ">"
 
 
 module.exports = BackTransport

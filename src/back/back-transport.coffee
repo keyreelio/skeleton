@@ -6,8 +6,21 @@ xhr = require '../modules/xhr.coffee'
 gonzales = require '../modules/gonzales.coffee'
 select = require('optimal-select').select
 
-META_ATTRIBS_FOR_DEL = ['Content-Security-Policy', 'refresh']
-ONEVENT_ATTRIBS = [ 'onload', 'onclick', 'onkeypress' ]
+META_ATTRIBS_FOR_DEL = [
+  'Content-Security-Policy'
+  'refresh'
+]
+
+ONEVENT_ATTRIBS = [
+  'onload'
+  'onclick'
+  'onkeyup'
+  'onkeydown'
+  'onenter'
+  'onmouseenter',
+  'onmouseleave'
+  'onkeypress'
+]
 
 class TreeElementNotFound extends Error
 

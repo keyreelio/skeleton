@@ -104,7 +104,8 @@ class BackTransport
           attrib_name = 'axt-hardly-expected-input-type'
         else
           attrib_name = 'axt-expected-input-type'
-        input.setAttribute(attrib_name, input_type)
+        if not input.hasAttribute(attrib_name)
+          input.setAttribute(attrib_name, input_type)
 
       form.querySelectorAll('[axt-button-type]').forEach (button) ->
         button_type = button.getAttribute('axt-button-type')
@@ -115,7 +116,8 @@ class BackTransport
           attrib_name = 'axt-hardly-expected-button-type'
         else
           attrib_name = 'axt-expected-button-type'
-        button.setAttribute(attrib_name, button_type)
+        if not button.setAttribute(attrib_name)
+          button.setAttribute(attrib_name, button_type)
 
     # process all forms except <body>
     body = document.getElementsByTagName('body')[0]

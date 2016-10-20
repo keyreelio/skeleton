@@ -39,7 +39,8 @@ getSource = () ->
       mas.push(elem.nodeName,elem.nodeValue)
     return mas
 
-  # Function returns iframe url, content,html-atributes,iframe-selectors and iframe-path
+  # Function returns iframe url, content,html-atributes,
+  # iframe-selectors and iframe-path
   [ document.URL,
     document.documentElement.innerHTML,
     getAttribute(document.documentElement.attributes),

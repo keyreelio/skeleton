@@ -118,12 +118,13 @@ class BackTransport
         button.setAttribute(attrib_name, button_type)
 
     # process all forms except <body>
-    document.body.querySelectorAll('[axt-form-type]').forEach(_processForm)
+    body = document.getElementsByTagName('body')[0]
+    body.querySelectorAll('[axt-form-type]').forEach(_processForm)
     # then process <body> if it's a form
     # WHY? we need it because <body> include all forms, so it can process all
     # forms inputs as its own. To avoid this we process all forms first and
     # only then we process <body>
-    _processForm(document.body) if document.body.hasAtribute('axt-form-type')
+    _processForm(body) if body.getAttribute('axt-form-type')?
 
   clearValueAttrib: (document) ->
     inputs = document.querySelectorAll("input[type='password']")
@@ -154,17 +155,20 @@ class BackTransport
   save: (dom) ->
     _html = document.createElement 'html'
     _html.innerHTML = dom[1]
+    @cleanUp _html
     obj =
       url: dom[0]
       header: dom[2]
-      document: @cleanUp _html
+      document: _html
       framesIdx: dom[4]
       doctype: dom[5]
+    console.log _html.getElementsByTagName('body')
     @dictionary[dom[3]] = obj
 
   callback: (counter, counter1) =>
     #console.log counter
-    if counter == 0 and @flag == true and counter1 == 0
+    if counter <= 0 and @flag == true and counter1 == 0
+      console.log counter,counter1,@flag
       console.log @dictionary
       @createNewObj @dictionary[""],""
       file = new File([
@@ -179,6 +183,7 @@ class BackTransport
           .innerHTML + ".html",
         {type: "text/html;charset=utf-8"}
       )
+      console.log "SAVE:::"
       FileSaver.saveAs(file)
       @flag = false
       @dictionary = {}
@@ -198,11 +203,9 @@ class BackTransport
               console.error "Style attr error", error
             else
               tag.setAttribute('style', result)
-            callback tagCounter, attributeCounter
       tags = dom.document.querySelectorAll 'img,link,style'
-
       for tag in tags
-        tagCounter += 1
+        tagCounter++
         if(tag.hasAttribute('src'))
           src = convertURL tag.getAttribute('src'), dom.url
           Base64 src, tag, (error, tag, result) ->
@@ -216,19 +219,20 @@ class BackTransport
           if(tag.getAttribute('rel') == "stylesheet")
             href = convertURL(tag.getAttribute('href'), dom.url)
             gonzales xhr(href), tag, href, (error, tag, result) ->
+              tagCounter--
               if error?
                 console.error "style error", error
               else
                 #console.log counter
-                tagCounter--
                 style = document.createElement 'style'
                 style.innerHTML = result
                 parent = tag.parentElement
-                #console.log parent
-                #console.log style
+                console.log parent
+                console.log style
                 tag.parentElement.insertBefore style, tag
                 tag.parentElement.removeChild tag
                 #console.log parent.parentElement
+                console.log tagCounter
               callback tagCounter, attributeCounter
           else
             href = convertURL(tag.getAttribute('href'), dom.url)

@@ -1,6 +1,6 @@
 convertToBase64 = (url, elem, callback) ->
   if(url.indexOf("data:") >= 0)
-    callback null,elem,url
+    callback null, elem, url
   else
     #console.log "Url: #{url}"
     xhr = new XMLHttpRequest()
@@ -8,16 +8,17 @@ convertToBase64 = (url, elem, callback) ->
     xhr.responseType = 'blob'
     reader = new FileReader()
     xhr.onload = (e) ->
+      console.log "XHR LOAD"
       if this.status != 200
-        callback null, elem," ",url
+        callback null, elem, " ", url
       else
         blob = this.response
         reader.onloadend = () ->
-          callback null, elem, reader.result,url
+          callback null, elem, reader.result, url
         reader.readAsDataURL(blob)
     xhr.onerror = (e) ->
       console.log(
-        "Error " +
+        "XHR Error " +
         e.target.status +
         " occurred while receiving the document."
       )

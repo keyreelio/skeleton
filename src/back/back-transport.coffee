@@ -116,7 +116,7 @@ class BackTransport
           attrib_name = 'axt-hardly-expected-button-type'
         else
           attrib_name = 'axt-expected-button-type'
-        if not button.setAttribute(attrib_name)
+        if not button.hasAttribute(attrib_name)
           button.setAttribute(attrib_name, button_type)
 
     # process all forms except <body>

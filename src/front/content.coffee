@@ -1,5 +1,3 @@
-select = require('optimal-select').select
-
 getSource = () ->
   getFramePath = () ->
     fid = []
@@ -15,15 +13,33 @@ getSource = () ->
       _get_frame_id(parent)
     _get_frame_id(window)
     return fid.join ':'
-
-  getSelector = (innerHTML) ->
+  
+  getElementPath = (DOM) ->
     dictionary = {}
-    frames = document.getElementsByTagName 'iframe'
+    getFrameId = (obj) ->
+      result = []
+      _getPositionOfFrame = (obj)->
+        if obj.parentElement == DOM
+          return
+        else
+          parent = obj.parentElement
+          nodeList = Array.prototype.slice.call(parent.children)
+          index = nodeList.indexOf(obj)
+          result.unshift(index)
+          _getPositionOfFrame(parent)
+      _getPositionOfFrame(obj)
+      console.log result
+      return JSON.stringify(result)
+
+    frames = DOM.getElementsByTagName 'iframe'
+    console.log frames.length
     for iframe in frames
       i = 0
       while i<window.frames.length
         if iframe.contentWindow == window.frames[i]
-          dictionary[select(iframe)] = i
+          console.log getFrameId(iframe,DOM)
+          dictionary[getFrameId(iframe,DOM)] = i
+          result = []
           break
         i++
     return dictionary
@@ -45,7 +61,7 @@ getSource = () ->
     document.documentElement.innerHTML,
     getAttribute(document.documentElement.attributes),
     getFramePath(),
-    getSelector(document.documentElement.innerHTML),
+    getElementPath(document.documentElement),
     getDoctype(document.doctype)
   ]
 
@@ -59,5 +75,3 @@ send = (port,message) ->
 
 @_port = chrome.runtime.connect {name: "skeleton"}
 send @_port,getSource()
-
-  

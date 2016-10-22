@@ -4,7 +4,6 @@ convertURL = require '../modules/getRelativeLink.coffee'
 FileSaver = require 'file-saver'
 xhr = require '../modules/xhr.coffee'
 gonzales = require '../modules/gonzales.coffee'
-select = require('optimal-select').select
 
 META_ATTRIBS_FOR_DEL = [
   'Content-Security-Policy'
@@ -42,6 +41,7 @@ class BackTransport
         allFrames: true
         matchAboutBlank: true
         ,(array) =>
+          console.log @dictionary
           @parse(@callback)
         chrome.runtime.onConnect.addListener (port) =>
           #console.log port.name
@@ -154,25 +154,34 @@ class BackTransport
     @clearValueAttrib(document)
     return document
 
-  save: (dom) ->
+  getDocument: (htmlText) ->
     _html = document.createElement 'html'
-    _html.innerHTML = dom[1]
-    @cleanUp _html
+    html = document.createElement 'html'
+    html.innerHTML = htmlText.substring(htmlText.indexOf("<body"),htmlText.length)
+    attributesBody = html.getElementsByTagName('body')[0].attributes
+    _html.innerHTML = "<head></head><body></body>"
+    _html.getElementsByTagName('head')[0].innerHTML = htmlText.substring(htmlText.indexOf("<head"),htmlText.indexOf("/head>")+6)
+    _html.getElementsByTagName('body')[0].innerHTML = htmlText.substring(htmlText.indexOf("<body"),htmlText.length)
+    body = _html.getElementsByTagName('body')[0]
+    for attribute in attributesBody
+      body.setAttribute attribute.name,attribute.value
+    return _html
+
+  save: (dom) ->
     obj =
       url: dom[0]
       header: dom[2]
-      document: _html
+      document: @getDocument(dom[1])
       framesIdx: dom[4]
       doctype: dom[5]
-    console.log _html.getElementsByTagName('body')
     @dictionary[dom[3]] = obj
 
   callback: (counter, counter1) =>
-    #console.log counter
-    if counter <= 0 and @flag == true and counter1 == 0
-      console.log counter,counter1,@flag
+    console.log counter,counter1,@flag
+    if counter == 0 and @flag == true and counter1 == 0
       console.log @dictionary
       @createNewObj @dictionary[""],""
+      @dictionary[""].document = @cleanUp @dictionary[""].document
       file = new File([
         @getAttribute(
           @dictionary[""].header,@dictionary[""].doctype
@@ -185,15 +194,14 @@ class BackTransport
           .innerHTML + ".html",
         {type: "text/html;charset=utf-8"}
       )
-      console.log "SAVE:::"
       FileSaver.saveAs(file)
       @flag = false
       @dictionary = {}
 
   parse: (callback) ->
-    #console.warn "DICTINARY",@dictionary
     attributeCounter = 0
     tagCounter = 0
+    #console.warn "DICTINARY",@dictionary
     for key, dom of @dictionary
       tagsStyles = dom.document.querySelectorAll '*[style]'
       for tag in tagsStyles
@@ -201,17 +209,21 @@ class BackTransport
         gonzales tag.getAttribute('style'), tag, dom.url,
           (error, tag, result) ->
             attributeCounter--
+            console.log "--",attributeCounter
             if error?
               console.error "Style attr error", error
             else
               tag.setAttribute('style', result)
+            callback tagCounter, attributeCounter
       tags = dom.document.querySelectorAll 'img,link,style'
+      console.log tags
       for tag in tags
         tagCounter++
         if(tag.hasAttribute('src'))
           src = convertURL tag.getAttribute('src'), dom.url
           Base64 src, tag, (error, tag, result) ->
             tagCounter--
+            console.log "--",tagCounter
             if error?
               console.error "(src)Base 64 error:", error.stack
             else
@@ -221,25 +233,26 @@ class BackTransport
           if(tag.getAttribute('rel') == "stylesheet")
             href = convertURL(tag.getAttribute('href'), dom.url)
             gonzales xhr(href), tag, href, (error, tag, result) ->
-              tagCounter--
               if error?
                 console.error "style error", error
               else
                 #console.log counter
+                tagCounter--
+                console.log "--",tagCounter
                 style = document.createElement 'style'
                 style.innerHTML = result
                 parent = tag.parentElement
-                console.log parent
-                console.log style
+                #console.log parent
+                #console.log style
                 tag.parentElement.insertBefore style, tag
                 tag.parentElement.removeChild tag
                 #console.log parent.parentElement
-                console.log tagCounter
               callback tagCounter, attributeCounter
           else
             href = convertURL(tag.getAttribute('href'), dom.url)
             Base64 href, tag, (error, tag, result) ->
               tagCounter--
+              console.log "--",tagCounter
               if error?
                 console.error "(href) Base64 error (href=#{href}):", error.stack
               else
@@ -248,6 +261,7 @@ class BackTransport
         else
           gonzales tag.innerHTML, tag, dom.url, (error, tag, result) ->
             tagCounter--
+            console.log "--",tagCounter
             if error?
               console.error "(style)gonzales error:", error.stack
               console.error tag.innerHTML
@@ -256,33 +270,46 @@ class BackTransport
             callback tagCounter, attributeCounter
     @flag = true
 
-  createNewObj: (obj, str) ->
-    console.log "START from", str
+  getFramePath: (obj,DOM) ->
+    result = []
+    _getPositionOfFrame = (obj)->
+      console.log DOM
+      if obj.parentElement == DOM
+        return
+      else
+        parent = obj.parentElement
+        nodeList = Array.prototype.slice.call(parent.children)
+        index = nodeList.indexOf(obj)
+        result.unshift(index)
+        _getPositionOfFrame(parent)
+    _getPositionOfFrame(obj)
+    console.log result
+    return JSON.stringify(result)
+
+  createNewObj: (obj,str) ->
     frames = obj.document.getElementsByTagName 'iframe'
-    console.log frames
-    for frame, i in frames
-      selector = select(frame)
-      console.log "SELECTOR", selector
-      console.log "Obj", obj.framesIdx
+    for frame in frames
+      selector = @getFramePath(frame,obj.document)
+      console.log selector
       index = -1
       for key of obj.framesIdx
-        if selector.indexOf(key) != -1
+        console.log key
+        if selector == key
           index= obj.framesIdx[key]
       if index == -1
         continue
       key = str + index
-      console.log "KEY", key
-      console.warn @dictionary
       if @dictionary[key]?
-        @createNewObj @dictionary[key], key + ":"
+        @createNewObj @dictionary[key], key+":"
+        _document = @cleanUp @dictionary[key].document
+        console.log _document
         source = @getAttribute(
           @dictionary[key].header,
           @dictionary[key].doctype
-        ) + @dictionary[key].document.innerHTML + "</html>"
-        frame.setAttribute "srcdoc",  source
-        console.log frame
-      else
-        frame.parentElement.removeChild frame
+        ) + _document.innerHTML + "</html>"
+        frame.setAttribute('srcdoc', source)
+
+
 
   getAttribute: (array, status) ->
     src = "<html "

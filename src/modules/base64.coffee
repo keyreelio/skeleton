@@ -8,7 +8,7 @@ convertToBase64 = (url, elem, callback) ->
     xhr.responseType = 'blob'
     reader = new FileReader()
     xhr.onload = (e) ->
-      console.log "XHR LOAD"
+      #console.log "XHR LOAD"
       if this.status != 200
         callback null, elem, " ", url
       else

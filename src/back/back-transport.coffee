@@ -33,22 +33,90 @@ class BackTransport
     chrome.browserAction.onClicked.addListener () =>
       # This function is executed on the content page and retrieves its HTML
       # content. Function runs on on the body page and each iframes
+      getSource = () ->
+        getFramePath = () ->
+          fid = []
+          _get_frame_id = (win) ->
+            parent = win.parent
+            return if win == parent
+            idx = '?'
+            for frame, frame_idx in parent.frames
+              if win == frame
+                idx = frame_idx
+                break
+            fid.unshift idx
+            _get_frame_id(parent)
+          _get_frame_id(window)
+          return fid.join ':'
+        
+        getElementPath = (DOM) ->
+          dictionary = {}
+          getFrameId = (obj) ->
+            result = []
+            _getPositionOfFrame = (obj)->
+              if obj.parentElement == DOM
+                return
+              else
+                parent = obj.parentElement
+                nodeList = Array.prototype.slice.call(parent.children)
+                index = nodeList.indexOf(obj)
+                result.unshift(index)
+                _getPositionOfFrame(parent)
+            _getPositionOfFrame(obj)
+            console.log result
+            return JSON.stringify(result)
+
+          frames = DOM.getElementsByTagName 'iframe'
+          console.log frames.length
+          for iframe in frames
+            i = 0
+            while i<window.frames.length
+              if iframe.contentWindow == window.frames[i]
+                console.log getFrameId(iframe,DOM)
+                dictionary[getFrameId(iframe,DOM)] = i
+                result = []
+                break
+              i++
+          return dictionary
+          
+        getDoctype = (doctype)->
+          if doctype?
+            return [doctype.name,doctype.publicId,doctype.systemId]
+          return null
+
+        getAttribute = (array)->
+          mas = []
+          for elem in array
+            mas.push(elem.nodeName,elem.nodeValue)
+          return mas
+
+        # Function returns iframe url, content,html-atributes,
+        # iframe-selectors and iframe-path
+        [ document.URL,
+          document.documentElement.innerHTML,
+          getAttribute(document.documentElement.attributes),
+          getFramePath(),
+          getElementPath(document.documentElement),
+          getDoctype(document.doctype)
+        ]
 
       console.log "Button pressed!"
-      chrome.tabs.query {active: true, currentWindow: true}, (tabArray) =>
+      console.log "function=", getSource.toString()
+      chrome.tabs.query {active: true, currentWindow: true},(tabArray) =>
+        #console.log "qwerty"
+        #chrome.tabs.executeScript tabArray[0].id,
+        #{ file: "content.min.js",allFrames: true}, (array) ->
+        #  console.log "QWERTY",array
         chrome.tabs.executeScript tabArray[0].id,
-        file: "content.min.js"
-        allFrames: true
-        matchAboutBlank: true
-        ,(array) =>
-          console.log @dictionary
-          @parse(@callback)
-        chrome.runtime.onConnect.addListener (port) =>
-          #console.log port.name
-          # portname == 'skeleton' ?
-          port.onMessage.addListener (message) =>
-            console.log message
-            @save message.message
+          code: "(" + getSource.toString() + ")()" # transform function to the
+                                                   # string and wrap it to
+                                                   # execute it immidiatelly
+                                                   # after injecting
+          allFrames: true,
+          matchAboutBlank: true
+        , (array) =>
+          console.log "Array=", array
+          @save array
 
   deleteScripts: (document) ->
     scripts = document.querySelectorAll 'script'
@@ -142,8 +210,8 @@ class BackTransport
         if attr?.name in ONEVENT_ATTRIBS
           element.removeAttribute(attr.name)
 
-  cleanUp: (document) ->
-    #console.log "DOCUMENT=", document
+  cleanUp: (document,url) ->
+    console.log "DOCUMENT=", document
     @deleteScripts(document)
     @deleteMeta(document)
     @clearOnEventAttribs(document)
@@ -152,6 +220,7 @@ class BackTransport
     @deleteAxtAttribs(document)
     @replaceAxtAttribs(document)
     @clearValueAttrib(document)
+    @addMeta(document,url)
     return document
 
   getDocument: (htmlText) ->
@@ -167,19 +236,21 @@ class BackTransport
       body.setAttribute attribute.name,attribute.value
     return _html
 
-  save: (dom) ->
-    obj =
-      url: dom[0]
-      header: dom[2]
-      document: @getDocument(dom[1])
-      framesIdx: dom[4]
-      doctype: dom[5]
-    @dictionary[dom[3]] = obj
+  save: (doms) ->
+    for dom in doms
+      obj =
+        url: dom[0]
+        header: dom[2]
+        document: @getDocument(dom[1])
+        framesIdx: dom[4]
+        doctype: dom[5]
+      @dictionary[dom[3]] = obj
+    @parse(@callback)
 
   callback: (counter, counter1) =>
-    console.log counter,counter1,@flag
+    #console.log counter,counter1,@flag
     if counter == 0 and @flag == true and counter1 == 0
-      console.log @dictionary
+      #console.log @dictionary
       @createNewObj @dictionary[""],""
       @dictionary[""].document = @cleanUp @dictionary[""].document
       file = new File([
@@ -195,10 +266,17 @@ class BackTransport
         {type: "text/html;charset=utf-8"}
       )
       FileSaver.saveAs(file)
+      @saved = true
       @flag = false
       @dictionary = {}
 
   parse: (callback) ->
+    metas = @dictionary[""].document.querySelectorAll '[name]'
+    for meta in metas
+      if meta.getAttribute('name') == 'original-url'
+        @flag = true
+        callback 0,0
+        return
     attributeCounter = 0
     tagCounter = 0
     #console.warn "DICTINARY",@dictionary
@@ -209,21 +287,21 @@ class BackTransport
         gonzales tag.getAttribute('style'), tag, dom.url,
           (error, tag, result) ->
             attributeCounter--
-            console.log "--",attributeCounter
+            #console.log "--",attributeCounter
             if error?
               console.error "Style attr error", error
             else
               tag.setAttribute('style', result)
             callback tagCounter, attributeCounter
       tags = dom.document.querySelectorAll 'img,link,style'
-      console.log tags
+      #console.log tags
       for tag in tags
         tagCounter++
         if(tag.hasAttribute('src'))
           src = convertURL tag.getAttribute('src'), dom.url
           Base64 src, tag, (error, tag, result) ->
             tagCounter--
-            console.log "--",tagCounter
+            #console.log "--",tagCounter
             if error?
               console.error "(src)Base 64 error:", error.stack
             else
@@ -238,7 +316,7 @@ class BackTransport
               else
                 #console.log counter
                 tagCounter--
-                console.log "--",tagCounter
+                #console.log "--",tagCounter
                 style = document.createElement 'style'
                 style.innerHTML = result
                 parent = tag.parentElement
@@ -252,7 +330,7 @@ class BackTransport
             href = convertURL(tag.getAttribute('href'), dom.url)
             Base64 href, tag, (error, tag, result) ->
               tagCounter--
-              console.log "--",tagCounter
+              #console.log "--",tagCounter
               if error?
                 console.error "(href) Base64 error (href=#{href}):", error.stack
               else
@@ -261,7 +339,7 @@ class BackTransport
         else
           gonzales tag.innerHTML, tag, dom.url, (error, tag, result) ->
             tagCounter--
-            console.log "--",tagCounter
+            #console.log "--",tagCounter
             if error?
               console.error "(style)gonzales error:", error.stack
               console.error tag.innerHTML
@@ -273,7 +351,7 @@ class BackTransport
   getFramePath: (obj,DOM) ->
     result = []
     _getPositionOfFrame = (obj)->
-      console.log DOM
+      #console.log DOM
       if obj.parentElement == DOM
         return
       else
@@ -283,17 +361,23 @@ class BackTransport
         result.unshift(index)
         _getPositionOfFrame(parent)
     _getPositionOfFrame(obj)
-    console.log result
+    #console.log result
     return JSON.stringify(result)
+
+  addMeta: (DOM,url)->
+    meta = document.createElement 'meta'
+    meta.setAttribute 'name','original-url'
+    meta.setAttribute 'content',url
+    DOM.getElementsByTagName('head')[0].appendChild meta
 
   createNewObj: (obj,str) ->
     frames = obj.document.getElementsByTagName 'iframe'
     for frame in frames
       selector = @getFramePath(frame,obj.document)
-      console.log selector
+      #console.log selector
       index = -1
       for key of obj.framesIdx
-        console.log key
+        #console.log key
         if selector == key
           index= obj.framesIdx[key]
       if index == -1
@@ -301,8 +385,8 @@ class BackTransport
       key = str + index
       if @dictionary[key]?
         @createNewObj @dictionary[key], key+":"
-        _document = @cleanUp @dictionary[key].document
-        console.log _document
+        _document = @cleanUp @dictionary[key].document,@dictionary[key].url
+        #console.log _document
         source = @getAttribute(
           @dictionary[key].header,
           @dictionary[key].doctype
@@ -318,10 +402,10 @@ class BackTransport
         src += array[i] + '="' + array[i+1] + '" '
       else
         break
-    console.log status
+    #console.log status
     if status?
       doctype = @getDoctype(status)
-      console.log doctype
+      #console.log doctype
       return doctype + src
     return src += ">"
 
@@ -335,7 +419,7 @@ class BackTransport
         src += '"' + array[i] + '"'
       if i == 0
         src+= array[i] + " "
-      console.log src
+      #console.log src
     return src + ">"
 
 

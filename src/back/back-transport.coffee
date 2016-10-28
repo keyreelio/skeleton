@@ -238,6 +238,7 @@ class BackTransport
 
   save: (doms) ->
     for dom in doms
+      console.log dom[0],@getDocument(dom[1])
       obj =
         url: dom[0]
         header: dom[2]
@@ -252,16 +253,15 @@ class BackTransport
     if counter == 0 and @flag == true and counter1 == 0
       #console.log @dictionary
       @createNewObj @dictionary[""],""
-      @dictionary[""].document = @cleanUp @dictionary[""].document
+      _document = @cleanUp @dictionary[""].document,@dictionary[""].url
       file = new File([
         @getAttribute(
           @dictionary[""].header,@dictionary[""].doctype
         ),
-        @dictionary[""].document.innerHTML,
+        _document.innerHTML,
         "</html>"
         ],
-        @dictionary[""]
-          .document.getElementsByTagName('title')[0]
+        _document.getElementsByTagName('title')[0]
           .innerHTML + ".html",
         {type: "text/html;charset=utf-8"}
       )

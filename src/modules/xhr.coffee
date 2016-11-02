@@ -10,5 +10,5 @@ module.exports = (source) ->
     else
       return " "
   catch e
-    console.error "XHR Error:", e.stack
+    console.error "XHR", e.stack
     return " "

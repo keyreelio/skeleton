@@ -13,7 +13,7 @@ getSource = () ->
       _get_frame_id(parent)
     _get_frame_id(window)
     return fid.join ':'
-  
+
   getElementPath = (DOM) ->
     dictionary = {}
     getFrameId = (obj) ->
@@ -43,7 +43,7 @@ getSource = () ->
           break
         i++
     return dictionary
-    
+
   getDoctype = (doctype)->
     if doctype?
       return [doctype.name,doctype.publicId,doctype.systemId]

@@ -32,7 +32,7 @@ class BackTransport
 
     chrome.browserAction.onClicked.addListener () =>
       # This function is executed on the content page and retrieves its HTML
-      # content. Function runs on on the body page and each iframes
+      # content. Function runs on the root page and on each iframes
       getSource = () ->
         getFramePath = () ->
           fid = []
@@ -48,7 +48,7 @@ class BackTransport
             _get_frame_id(parent)
           _get_frame_id(window)
           return fid.join ':'
-        
+
         getElementPath = (DOM) ->
           dictionary = {}
           getFrameId = (obj) ->
@@ -72,25 +72,25 @@ class BackTransport
             i = 0
             while i<window.frames.length
               if iframe.contentWindow == window.frames[i]
-                console.log getFrameId(iframe,DOM)
-                dictionary[getFrameId(iframe,DOM)] = i
+                console.log getFrameId(iframe, DOM)
+                dictionary[getFrameId(iframe, DOM)] = i
                 result = []
                 break
               i++
           return dictionary
-          
+
         getDoctype = (doctype)->
           if doctype?
-            return [doctype.name,doctype.publicId,doctype.systemId]
+            return [doctype.name, doctype.publicId, doctype.systemId]
           return null
 
         getAttribute = (array)->
           mas = []
           for elem in array
-            mas.push(elem.nodeName,elem.nodeValue)
+            mas.push(elem.nodeName, elem.nodeValue)
           return mas
 
-        # Function returns iframe url, content,html-atributes,
+        # Function returns iframe url, content, html-atributes,
         # iframe-selectors and iframe-path
         [ document.URL,
           document.documentElement.innerHTML,
@@ -102,16 +102,17 @@ class BackTransport
 
       console.log "Button pressed!"
       console.log "function=", getSource.toString()
-      chrome.tabs.query {active: true, currentWindow: true},(tabArray) =>
+      chrome.tabs.query {active: true, currentWindow: true}, (tabArray) =>
         #console.log "qwerty"
         #chrome.tabs.executeScript tabArray[0].id,
-        #{ file: "content.min.js",allFrames: true}, (array) ->
-        #  console.log "QWERTY",array
+        #{ file: "content.min.js", allFrames: true}, (array) ->
+        #  console.log "QWERTY", array
         chrome.tabs.executeScript tabArray[0].id,
           code: "(" + getSource.toString() + ")()" # transform function to the
-                                                   # string and wrap it to
-                                                   # execute it immidiatelly
-                                                   # after injecting
+                                                   # string and wrap it into the
+                                                   # closure to execute it
+                                                   # immidiatelly after
+                                                   # injecting
           allFrames: true,
           matchAboutBlank: true
         , (array) =>
@@ -152,44 +153,50 @@ class BackTransport
 
   replaceAxtAttribs: (document) ->
     _processForm = (form) ->
-      hardly = form.getAttribute('axt-hardly') == 'true'
-      form_type = form.getAttribute('axt-form-type')
+      if form.hasAttribute('axt-expected-form-type')
+        form_type = form.getAttribute('axt-expected-form-type')
+      else
+        form_type = form.getAttribute('axt-form-type')
 
       form.removeAttribute('axt-form-type')
-      form.removeAttribute('axt-hardly')
-      if hardly
-        attrib_name = 'axt-hardly-expected-form-type'
+      if form_type
+        form.setAttribute('axt-expected-form-type', form_type)
       else
-        attrib_name = 'axt-expected-form-type'
-      form.setAttribute(attrib_name, form_type)
+        form.removeAttribute('axt-expected-form-type')
 
-      form.querySelectorAll('[axt-input-type]').forEach (input) ->
-        input_type = input.getAttribute('axt-input-type')
-        hardly = input.getAttribute('axt-hardly') == 'true'
+      form.querySelectorAll(
+        '[axt-input-type],[axt-expected-input-type]'
+      ).forEach (input) ->
+        if input.hasAttribute('axt-expected-input-type')
+          input_type = input.getAttribute('axt-expected-input-type')
+        else
+          input_type = input.getAttribute('axt-input-type')
+
         input.removeAttribute('axt-input-type')
-        input.removeAttribute('axt-hardly')
-        if hardly
-          attrib_name = 'axt-hardly-expected-input-type'
+        if input_type
+          input.setAttribute('axt-expected-input-type', input_type)
         else
-          attrib_name = 'axt-expected-input-type'
-        if not input.hasAttribute(attrib_name)
-          input.setAttribute(attrib_name, input_type)
+          input.removeAttribute('axt-expected-input-type')
 
-      form.querySelectorAll('[axt-button-type]').forEach (button) ->
-        button_type = button.getAttribute('axt-button-type')
-        hardly = button.getAttribute('axt-hardly') == 'true'
-        button.removeAttribute('axt-button-type')
-        button.removeAttribute('axt-hardly')
-        if hardly
-          attrib_name = 'axt-hardly-expected-button-type'
+      form.querySelectorAll(
+        '[axt-button-type],[axt-expected-button-type]'
+      ).forEach (button) ->
+        if button.hasAttribute('axt-expected-button-type')
+          button_type = button.getAttribute('axt-expected-button-type')
         else
-          attrib_name = 'axt-expected-button-type'
-        if not button.hasAttribute(attrib_name)
-          button.setAttribute(attrib_name, button_type)
+          button_type = button.getAttribute('axt-button-type')
+
+        button.removeAttribute('axt-button-type')
+        if button_type
+          button.setAttribute('axt-expected-button-type', button_type)
+        else
+          button.removeAttribute('axt-expected-button-type')
 
     # process all forms except <body>
     body = document.getElementsByTagName('body')[0]
-    body.querySelectorAll('[axt-form-type]').forEach(_processForm)
+    body.querySelectorAll(
+      '[axt-form-type],[axt-expected-form-type'
+    ).forEach(_processForm)
     # then process <body> if it's a form
     # WHY? we need it because <body> include all forms, so it can process all
     # forms inputs as its own. To avoid this we process all forms first and
@@ -210,7 +217,7 @@ class BackTransport
         if attr?.name in ONEVENT_ATTRIBS
           element.removeAttribute(attr.name)
 
-  cleanUp: (document,url) ->
+  cleanUp: (document, url) ->
     console.log "DOCUMENT=", document
     @deleteScripts(document)
     @deleteMeta(document)
@@ -220,20 +227,27 @@ class BackTransport
     @deleteAxtAttribs(document)
     @replaceAxtAttribs(document)
     @clearValueAttrib(document)
-    @addMeta(document,url)
+    @addMeta(document, url)
     return document
 
   getDocument: (htmlText) ->
     _html = document.createElement 'html'
     html = document.createElement 'html'
-    html.innerHTML = htmlText.substring(htmlText.indexOf("<body"),htmlText.length)
+    html.innerHTML = htmlText.substring(
+      htmlText.indexOf("<body"),
+      htmlText.length
+    )
     attributesBody = html.getElementsByTagName('body')[0].attributes
     _html.innerHTML = "<head></head><body></body>"
-    _html.getElementsByTagName('head')[0].innerHTML = htmlText.substring(htmlText.indexOf("<head"),htmlText.indexOf("/head>")+6)
-    _html.getElementsByTagName('body')[0].innerHTML = htmlText.substring(htmlText.indexOf("<body"),htmlText.length)
+    _html.getElementsByTagName('head')[0].innerHTML = htmlText.substring(
+      htmlText.indexOf("<head"), htmlText.indexOf("/head>") + 6
+    )
+    _html.getElementsByTagName('body')[0].innerHTML = htmlText.substring(
+      htmlText.indexOf("<body"), htmlText.length
+    )
     body = _html.getElementsByTagName('body')[0]
     for attribute in attributesBody
-      body.setAttribute attribute.name,attribute.value
+      body.setAttribute attribute.name, attribute.value
     return _html
 
   save: (doms) ->
@@ -249,7 +263,7 @@ class BackTransport
     @parse(@callback)
 
   callback: (counter, counter1) =>
-    #console.log counter,counter1,@flag
+    #console.log counter, counter1,@flag
     if counter == 0 and @flag == true and counter1 == 0
       #console.log @dictionary
       @createNewObj @dictionary[""],""
@@ -275,7 +289,7 @@ class BackTransport
     for meta in metas
       if meta.getAttribute('name') == 'original-url'
         @flag = true
-        callback 0,0
+        callback 0, 0
         return
     attributeCounter = 0
     tagCounter = 0
@@ -287,7 +301,7 @@ class BackTransport
         gonzales tag.getAttribute('style'), tag, dom.url,
           (error, tag, result) ->
             attributeCounter--
-            #console.log "--",attributeCounter
+            #console.log "--", attributeCounter
             if error?
               console.error "Style attr error", error
             else
@@ -301,7 +315,7 @@ class BackTransport
           src = convertURL tag.getAttribute('src'), dom.url
           Base64 src, tag, (error, tag, result) ->
             tagCounter--
-            #console.log "--",tagCounter
+            #console.log "--", tagCounter
             if error?
               console.error "(src)Base 64 error:", error.stack
             else
@@ -316,7 +330,7 @@ class BackTransport
               else
                 #console.log counter
                 tagCounter--
-                #console.log "--",tagCounter
+                #console.log "--", tagCounter
                 style = document.createElement 'style'
                 style.innerHTML = result
                 parent = tag.parentElement
@@ -330,7 +344,7 @@ class BackTransport
             href = convertURL(tag.getAttribute('href'), dom.url)
             Base64 href, tag, (error, tag, result) ->
               tagCounter--
-              #console.log "--",tagCounter
+              #console.log "--", tagCounter
               if error?
                 console.error "(href) Base64 error (href=#{href}):", error.stack
               else
@@ -339,7 +353,7 @@ class BackTransport
         else
           gonzales tag.innerHTML, tag, dom.url, (error, tag, result) ->
             tagCounter--
-            #console.log "--",tagCounter
+            #console.log "--", tagCounter
             if error?
               console.error "(style)gonzales error:", error.stack
               console.error tag.innerHTML
@@ -348,7 +362,7 @@ class BackTransport
             callback tagCounter, attributeCounter
     @flag = true
 
-  getFramePath: (obj,DOM) ->
+  getFramePath: (obj, DOM) ->
     result = []
     _getPositionOfFrame = (obj)->
       #console.log DOM
@@ -364,16 +378,16 @@ class BackTransport
     #console.log result
     return JSON.stringify(result)
 
-  addMeta: (DOM,url)->
+  addMeta: (DOM, url)->
     meta = document.createElement 'meta'
     meta.setAttribute 'name','original-url'
-    meta.setAttribute 'content',url
+    meta.setAttribute 'content', url
     DOM.getElementsByTagName('head')[0].appendChild meta
 
-  createNewObj: (obj,str) ->
+  createNewObj: (obj, str) ->
     frames = obj.document.getElementsByTagName 'iframe'
     for frame in frames
-      selector = @getFramePath(frame,obj.document)
+      selector = @getFramePath(frame, obj.document)
       #console.log selector
       index = -1
       for key of obj.framesIdx
@@ -392,8 +406,6 @@ class BackTransport
           @dictionary[key].doctype
         ) + _document.innerHTML + "</html>"
         frame.setAttribute('srcdoc', source)
-
-
 
   getAttribute: (array, status) ->
     src = "<html "

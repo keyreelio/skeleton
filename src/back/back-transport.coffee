@@ -418,7 +418,7 @@ class BackTransport
     if status?
       doctype = @getDoctype(status)
       #console.log doctype
-      return doctype + src
+      return doctype + src + ">"
     return src += ">"
 
   getDoctype: (array) ->

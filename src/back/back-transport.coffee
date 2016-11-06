@@ -267,16 +267,17 @@ class BackTransport
     if counter == 0 and @flag == true and counter1 == 0
       #console.log @dictionary
       @createNewObj @dictionary[""],""
-      _document = @cleanUp @dictionary[""].document,@dictionary[""].url
+      _url = @dictionary[""].url
+      console.warn "!!! URL=", _url
+      _doc = @cleanUp @dictionary[""].document, _url
       file = new File([
         @getAttribute(
           @dictionary[""].header,@dictionary[""].doctype
         ),
-        _document.innerHTML,
+        _doc.innerHTML,
         "</html>"
         ],
-        _document.getElementsByTagName('title')[0]
-          .innerHTML + ".html",
+        (_doc.getElementsByTagName('title')[0]?.innerHTML ? _url) + ".html",
         {type: "text/html;charset=utf-8"}
       )
       FileSaver.saveAs(file)
@@ -382,7 +383,11 @@ class BackTransport
     meta = document.createElement 'meta'
     meta.setAttribute 'name','original-url'
     meta.setAttribute 'content', url
-    DOM.getElementsByTagName('head')[0].appendChild meta
+    head = (
+      DOM.getElementsByTagName('head')[0] ?
+      DOM.getElementsByTagName('body')[0]
+    )
+    head.insertBefore meta, head.children[0]
 
   createNewObj: (obj, str) ->
     frames = obj.document.getElementsByTagName 'iframe'
@@ -425,12 +430,11 @@ class BackTransport
     src = "<!DOCTYPE "
     elem = ""
     for i in [0...array.length]
-      if i == 1
-        src += "PUBLIC " + '"' + array[i] + '" '
-      if i == 2
-        src += '"' + array[i] + '"'
-      if i == 0
-        src+= array[i] + " "
+      continue if not array[i].trim()
+      switch i
+        when 0 then src += array[i] + " "
+        when 1 then src += "PUBLIC " + '"' + array[i] + '" '
+        when 2 then src += '"' + array[i] + '"'
       #console.log src
     return src + ">"
 

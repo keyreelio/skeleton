@@ -2,7 +2,7 @@ convertURL = require '../modules/getRelativeLink.coffee'
 convertToBase64 = require '../modules/base64.coffee'
 
 
-recompose = (convMas, elemMas, urlMas, tag, callback) ->
+#recompose = (convMas, elemMas, urlMas, tag, callback) ->
 
 
 module.exports = (src, dom, source, callback) ->
@@ -14,7 +14,7 @@ module.exports = (src, dom, source, callback) ->
     elemMas = []
     convMas = []
     i = 0
-    while i<src.length
+    while i < src.length
       k = src.indexOf "url(", i
       if k!= -1
         elemMas.push src.substring(i, k+4)
@@ -32,17 +32,19 @@ module.exports = (src, dom, source, callback) ->
           console.log "Error base64:", error.stack
         else
           convMas.push([url, result])
+
         if counter == 0
           src = ""
           i = 0
           for elem in elemMas
             src += elem
             if urlMas[i]?
-              j = 0
+              j = -1
               for conv, index in convMas
                 if conv[0] == urlMas[i]
                   j = index
                   break
-              src += convMas[j][1]
+              if j >= 0
+                src += convMas[j][1]
               i++
           callback null, dom, src

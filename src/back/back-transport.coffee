@@ -286,7 +286,7 @@ class BackTransport
       @dictionary = {}
 
   parse: (callback) ->
-    metas = @dictionary[""].document.querySelectorAll '[name]'
+    metas = @dictionary[""]?.document.querySelectorAll('[name]') ? []
     for meta in metas
       if meta.getAttribute('name') == 'original-url'
         @flag = true

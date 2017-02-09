@@ -23,6 +23,10 @@ convertToBase64 = (url, elem, callback) ->
         " occurred while receiving the document."
       )
       callback e, elem, url,url
-    xhr.send()
+    try
+      xhr.send()
+    catch e
+      console.log e
+      callback null, elem, " ", url
 
 module.exports = convertToBase64

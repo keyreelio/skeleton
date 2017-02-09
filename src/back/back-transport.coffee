@@ -105,16 +105,19 @@ class BackTransport
       chrome.tabs.query {active: true, currentWindow: true}, (tabArray) =>
         #console.log "qwerty"
         #chrome.tabs.executeScript tabArray[0].id,
-        #{ file: "content.min.js", allFrames: true}, (array) ->
+        # { file: "content.min.js", allFrames: true}, (array) ->
         #  console.log "QWERTY", array
         chrome.tabs.executeScript tabArray[0].id,
+          {
           code: "(" + getSource.toString() + ")()" # transform function to the
                                                    # string and wrap it into the
                                                    # closure to execute it
                                                    # immidiatelly after
                                                    # injecting
           allFrames: true,
-          matchAboutBlank: true
+          matchAboutBlank: true,
+          runAt: "document_start"
+          }
         , (array) =>
           console.log "Array=", array
           @save array
@@ -263,7 +266,7 @@ class BackTransport
     @parse(@callback)
 
   callback: (counter, counter1) =>
-    #console.log counter, counter1,@flag
+    console.log counter, counter1,@flag
     if counter == 0 and @flag == true and counter1 == 0
       #console.log @dictionary
       @createNewObj @dictionary[""],""
@@ -302,59 +305,65 @@ class BackTransport
         gonzales tag.getAttribute('style'), tag, dom.url,
           (error, tag, result) ->
             attributeCounter--
-            #console.log "--", attributeCounter
+            console.log "--", attributeCounter
             if error?
               console.error "Style attr error", error
             else
               tag.setAttribute('style', result)
             callback tagCounter, attributeCounter
       tags = dom.document.querySelectorAll 'img,link,style'
-      #console.log tags
+      console.log tags
       for tag in tags
         tagCounter++
+        console.error tag
+        
         if(tag.hasAttribute('src'))
+          console.log('src:')
           src = convertURL tag.getAttribute('src'), dom.url
           Base64 src, tag, (error, tag, result) ->
             tagCounter--
-            #console.log "--", tagCounter
+            console.log "--", tagCounter
             if error?
               console.error "(src)Base 64 error:", error.stack
             else
               tag.setAttribute "src", result
             callback tagCounter, attributeCounter
         else if(tag.hasAttribute('href'))
+          console.log("href:")
           if(tag.getAttribute('rel') == "stylesheet")
+            console.log('stylesheet')
             href = convertURL(tag.getAttribute('href'), dom.url)
+            console.log(tag,href)
             gonzales xhr(href), tag, href, (error, tag, result) ->
               if error?
                 console.error "style error", error
               else
-                #console.log counter
                 tagCounter--
-                #console.log "--", tagCounter
+                console.log "--", tagCounter
                 style = document.createElement 'style'
                 style.innerHTML = result
                 parent = tag.parentElement
-                #console.log parent
-                #console.log style
+                console.log parent
+                console.log style
                 tag.parentElement.insertBefore style, tag
                 tag.parentElement.removeChild tag
-                #console.log parent.parentElement
+                console.log parent.parentElement
               callback tagCounter, attributeCounter
           else
             href = convertURL(tag.getAttribute('href'), dom.url)
             Base64 href, tag, (error, tag, result) ->
               tagCounter--
-              #console.log "--", tagCounter
+              console.log "--", tagCounter
               if error?
                 console.error "(href) Base64 error (href=#{href}):", error.stack
               else
                 tag.setAttribute "href", result
               callback tagCounter, attributeCounter
         else
+          console.log('style:')
           gonzales tag.innerHTML, tag, dom.url, (error, tag, result) ->
             tagCounter--
-            #console.log "--", tagCounter
+            console.log "--", tagCounter
             if error?
               console.error "(style)gonzales error:", error.stack
               console.error tag.innerHTML

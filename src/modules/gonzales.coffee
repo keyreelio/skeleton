@@ -6,6 +6,9 @@ convertToBase64 = require '../modules/base64.coffee'
 
 
 module.exports = (src, dom, source, callback) ->
+  console.log(src,dom,source)
+  if(dom == null)
+    callback null, dom, src
   if(src.indexOf("url(") < 0)
     callback null, dom, src
   else
@@ -25,6 +28,7 @@ module.exports = (src, dom, source, callback) ->
         elemMas.push src.substring(i, src.length)
         break
     counter = urlMas.length
+    console.log urlMas
     for i in [0...urlMas.length]
       convertToBase64 urlMas[i], dom, (error, obj, result, url) ->
         counter--

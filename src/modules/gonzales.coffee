@@ -6,13 +6,12 @@ convertToBase64 = require '../modules/base64.coffee'
 
 
 module.exports = (src, dom, source, callback) ->
-  console.log(src,dom,source)
-  if(dom == null)
-    callback null, dom, src
   if(src.indexOf("url(") < 0)
+    console.warn('not have url')
+    console.log(src,dom,source);
     callback null, dom, src
   else
-    #console.log "HALLOW", src, dom
+    console.log "HALLOW", src, dom
     urlMas = []
     elemMas = []
     convMas = []

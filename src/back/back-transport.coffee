@@ -108,7 +108,6 @@ class BackTransport
         # { file: "content.min.js", allFrames: true}, (array) ->
         #  console.log "QWERTY", array
         chrome.tabs.executeScript tabArray[0].id,
-          {
           code: "(" + getSource.toString() + ")()" # transform function to the
                                                    # string and wrap it into the
                                                    # closure to execute it
@@ -117,7 +116,6 @@ class BackTransport
           allFrames: true,
           matchAboutBlank: true,
           runAt: "document_start"
-          }
         , (array) =>
           console.log "Array=", array
           @save array

@@ -2,7 +2,7 @@
   "manifest_version": 2,
 
   "name": "PageCatch",
-  "description": "",
+  "description": "save html page with all resources into one file",
   "version": "0.1.0",
   "background": {
   				"persistent": false,
@@ -15,6 +15,6 @@
   },
 
   "permissions": [
-    "tabs", "http://*/", "https://*/","file://*","activeTab"
+    "tabs", "http://*/*", "https://*/*", "file://*", "activeTab", "<all_urls>"
   ]
 }

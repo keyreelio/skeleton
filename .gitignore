@@ -4,6 +4,13 @@
 
 # Logs
 logs
+tags
+TAGS
+.tags
+.TAGS
+
+*.crx
+*.pem
 
 *.log
 npm-debug.log*

@@ -127,7 +127,7 @@ class BackTransport
     return document
 
   deleteAxtElements: (document) ->
-    axtElements = document.querySelectorAll('[axt-element]')
+    axtElements = document.querySelectorAll('.axt-element')
     console.log "axtElements =", axtElements
     axtElements.forEach (element) ->
       element.parentElement?.removeChild(element)

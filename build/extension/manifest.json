@@ -2,7 +2,14 @@
   "manifest_version": 2,
 
   "name": "PageCatch",
-  "description": "save html page with all resources into one file",
+  "description": "Save a complete web page as a single HTML file.",
+  "icons": {
+     "128": "img/icon128-96.png",
+     "16": "img/icon16.png",
+     "32": "img/icon32.png",
+     "48": "img/icon48.png"
+  },
+
   "version": "0.1.0",
   "background": {
   				"persistent": false,
@@ -10,7 +17,7 @@
   				},
 
   "browser_action": {
-    "default_icon": "img/icon.png",
+    "default_icon": "img/icon16.png",
     "default_title": "Click here to save page"
   },
 
